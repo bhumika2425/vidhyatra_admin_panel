@@ -1,32 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // For clipboard functionality
 import 'package:get/get.dart';
-import '../controllers/student_controller.dart';
+import '../controllers/feedback_controller.dart';
 import '../widgets/admin_navbar.dart';
 import '../widgets/admin_top_navbar.dart';
+import 'package:admin_panel/models/feedback_model.dart' as CustomFeedback; // Alias for Feedback model
 
-class StudentsPage extends StatelessWidget {
-  final StudentsController controller = Get.put(StudentsController());
+class FeedbackPage extends StatelessWidget {
+  final FeedbackController controller = Get.put(FeedbackController());
 
-  StudentsPage({super.key});
+  FeedbackPage({super.key});
 
-  void _showUpdateStudentDialog(BuildContext context, student) {
-    final nameController = TextEditingController(text: student.name);
-    final emailController = TextEditingController(text: student.email);
-    final collegeIdController = TextEditingController(text: student.collegeId);
-    final roleController = TextEditingController(text: student.role);
+  void _showUpdateFeedbackDialog(BuildContext context, CustomFeedback.Feedback feedback) {
+    final contentController = TextEditingController(text: feedback.feedbackContent);
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Update Student'),
+        title: const Text('Update Feedback'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Name')),
-              TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email')),
-              TextField(controller: collegeIdController, decoration: const InputDecoration(labelText: 'College ID')),
-              TextField(controller: roleController, decoration: const InputDecoration(labelText: 'Role')),
+              TextField(
+                controller: contentController,
+                decoration: const InputDecoration(labelText: 'Feedback Content'),
+                maxLines: 3,
+              ),
             ],
           ),
         ),
@@ -37,7 +37,7 @@ class StudentsPage extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () {
-              // Update student logic here
+              // Update feedback logic here (placeholder)
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF971F20)),
@@ -48,12 +48,12 @@ class StudentsPage extends StatelessWidget {
     );
   }
 
-  void _confirmDeleteStudent(BuildContext context, int studentId) {
+  void _confirmDeleteFeedback(BuildContext context, int feedbackId) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("Delete Student"),
-        content: const Text("Are you sure you want to delete this student?"),
+        title: const Text("Delete Feedback"),
+        content: const Text("Are you sure you want to delete this feedback?"),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -61,7 +61,7 @@ class StudentsPage extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () {
-              // controller.deleteStudent(studentId); // Uncomment when logic is ready
+              // controller.deleteFeedback(feedbackId); // Uncomment when logic is ready
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF971F20)),
@@ -70,6 +70,12 @@ class StudentsPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _copyFeedbackContent(String content) {
+    Clipboard.setData(ClipboardData(text: content));
+    Get.snackbar('Copied', 'Feedback content copied to clipboard',
+        backgroundColor: Colors.green, colorText: Colors.white, duration: const Duration(seconds: 2));
   }
 
   @override
@@ -89,7 +95,7 @@ class StudentsPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Students",
+                    "Feedback",
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 20),
@@ -105,35 +111,38 @@ class StudentsPage extends StatelessWidget {
                             children: [
                               Text(controller.errorMessage.value, style: const TextStyle(color: Colors.red)),
                               ElevatedButton(
-                                onPressed: () => controller.fetchStudents(),
+                                onPressed: () => controller.fetchFeedback(),
                                 child: const Text('Retry'),
                               ),
                             ],
                           ),
                         );
                       }
-                      if (controller.students.isEmpty) {
-                        return const Center(child: Text('No students found'));
+                      if (controller.feedbackList.isEmpty) {
+                        return const Center(child: Text('No feedback found'));
                       }
                       return RefreshIndicator(
-                        onRefresh: controller.fetchStudents,
+                        onRefresh: controller.fetchFeedback,
                         child: ListView.builder(
-                          itemCount: controller.students.length,
+                          itemCount: controller.feedbackList.length,
                           itemBuilder: (context, index) {
-                            final student = controller.students[index];
+                            final feedback = controller.feedbackList[index];
                             return Card(
                               elevation: 3,
                               margin: const EdgeInsets.symmetric(vertical: 8),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               child: ListTile(
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                title: Text(student.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                title: Text(
+                                  feedback.feedbackType,
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('Email: ${student.email}'),
-                                    Text('College ID: ${student.collegeId}'),
-                                    Text('Role: ${student.role}'),
+                                    Text('Content: ${feedback.feedbackContent}'),
+                                    Text('Anonymous: ${feedback.isAnonymous == 1 ? 'Yes' : 'No'}'),
+                                    Text('Posted on: ${feedback.timestamp}'),
                                   ],
                                 ),
                                 trailing: Row(
@@ -141,11 +150,18 @@ class StudentsPage extends StatelessWidget {
                                   children: [
                                     IconButton(
                                       icon: const Icon(Icons.edit, color: Colors.blue),
-                                      onPressed: () => _showUpdateStudentDialog(context, student),
+                                      onPressed: () => _showUpdateFeedbackDialog(context, feedback),
+                                      tooltip: 'Edit Feedback',
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.copy, color: Colors.green),
+                                      onPressed: () => _copyFeedbackContent(feedback.feedbackContent),
+                                      tooltip: 'Copy Feedback',
                                     ),
                                     IconButton(
                                       icon: const Icon(Icons.delete, color: Colors.red),
-                                      onPressed: () => _confirmDeleteStudent(context, student.userId),
+                                      onPressed: () => _confirmDeleteFeedback(context, feedback.id),
+                                      tooltip: 'Delete Feedback',
                                     ),
                                   ],
                                 ),
@@ -162,7 +178,6 @@ class StudentsPage extends StatelessWidget {
           ),
         ],
       ),
-
     );
   }
 }

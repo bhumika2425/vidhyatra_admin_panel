@@ -1,6 +1,7 @@
 // main.dart
 import 'package:admin_panel/controllers/login_controller.dart';
 import 'package:admin_panel/screens/dashboard.dart';
+import 'package:admin_panel/screens/fees.dart';
 import 'package:admin_panel/screens/landing_page.dart';
 import 'package:admin_panel/screens/login.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +28,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/', page: () => LandingPage()),
         GetPage(name: '/login', page: () => LoginPage()),
         GetPage(name: '/dashboard', page: () => AdminDashboard()),
+        GetPage(name: '/fees', page: () => FeesPage()),
       ],
     );
   }

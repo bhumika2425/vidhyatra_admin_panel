@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import '../models/user_model.dart';
 import 'login_controller.dart';
 
-class AdminStudentsController extends GetxController {
+class StudentsController extends GetxController {
   var isLoading = false.obs;
   var errorMessage = ''.obs;
   var successMessage = ''.obs;

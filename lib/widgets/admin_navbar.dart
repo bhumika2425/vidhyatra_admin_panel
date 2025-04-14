@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../screens/event_management.dart';
+import '../screens/feedback.dart';
+import '../screens/fees.dart';
 import '../screens/manage_routine.dart';
 import '../screens/professors.dart';
 import '../screens/students.dart';
@@ -92,19 +94,19 @@ class AdminNavBar extends StatelessWidget {
         Get.to(() => ManageEvent()); // Navigate to Event Management page
         break;
       case 2:
-      // Get.to(() => FeedbackPage()); // Navigate to Feedback page
+      Get.to(() => FeedbackPage()); // Navigate to Feedback page
         break;
       case 3:
         Get.to(() => ProfessorsPage()); // Navigate to Professors page
         break;
       case 4:
-        Get.to(() => AdminStudentsPage()); // Navigate to Students page
+        Get.to(() => StudentsPage()); // Navigate to Students page
         break;
-    // case 5:
-    //   Get.to(() => FeesPage()); // Navigate to Fees page
-    //   break;
+    case 5:
+      Get.to(() => FeesPage()); // Navigate to Fees page
+      break;
       case 6:
-        Get.to(() => ManageRoutine()); // Navigate to Manage routine page
+        Get.to(() => ManageRoutineView()); // Navigate to Manage routine page
         break;
       default:
       // Get.to(() => DashboardPage()); // Default fallback to Dashboard
