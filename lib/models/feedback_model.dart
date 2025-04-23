@@ -1,4 +1,4 @@
-class Feedback {
+class FeedbackModel {
   final int id;
   final String userId;
   final String feedbackType;
@@ -7,8 +7,9 @@ class Feedback {
   final String timestamp;
   final String createdAt;
   final String updatedAt;
+  final int rating; // Added for dashboard
 
-  Feedback({
+  FeedbackModel({
     required this.id,
     required this.userId,
     required this.feedbackType,
@@ -17,19 +18,34 @@ class Feedback {
     required this.timestamp,
     required this.createdAt,
     required this.updatedAt,
+    required this.rating,
   });
 
-  // Factory method to create Feedback from JSON (if using API)
-  factory Feedback.fromJson(Map<String, dynamic> json) {
-    return Feedback(
-      id: json['id'],
-      userId: json['user_id'],
-      feedbackType: json['feedback_type'],
-      feedbackContent: json['feedback_content'],
-      isAnonymous: json['is_anonymous'],
-      timestamp: json['timestamp'],
-      createdAt: json['createdAt'],
-      updatedAt: json['updatedAt'],
+  factory FeedbackModel.fromJson(Map<String, dynamic> json) {
+    return FeedbackModel(
+      id: json['id'] ?? 0,
+      userId: json['userId'] ?? '',
+      feedbackType: json['feedbackType'] ?? '',
+      feedbackContent: json['feedbackContent'] ?? '',
+      isAnonymous: json['isAnonymous'] ?? 0,
+      timestamp: json['timestamp'] ?? '',
+      createdAt: json['createdAt'] ?? '',
+      updatedAt: json['updatedAt'] ?? '',
+      rating: json['rating'] ?? 0,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'userId': userId,
+      'feedbackType': feedbackType,
+      'feedbackContent': feedbackContent,
+      'isAnonymous': isAnonymous,
+      'timestamp': timestamp,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
+      'rating': rating,
+    };
   }
 }

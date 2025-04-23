@@ -1,4 +1,6 @@
 import 'package:admin_panel/screens/dashboard.dart';
+import 'package:admin_panel/screens/deadline_posting.dart';
+import 'package:admin_panel/screens/manage_academics.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -37,12 +39,14 @@ class AdminNavBar extends StatelessWidget {
             Column(
               children: [
                 _buildNavItem(Icons.dashboard, "Dashboard", 0),
-                _buildNavItem(Icons.event, "Manage Events", 1),
-                _buildNavItem(Icons.feedback, "User Feedback", 2),
-                _buildNavItem(Icons.account_box_rounded, "Professors", 3),
-                _buildNavItem(Icons.supervisor_account_rounded, "Students", 4),
-                _buildNavItem(Icons.money, "Fees", 5),
-                _buildNavItem(Icons.schedule_outlined, "Manage Routine", 6),
+                _buildNavItem(Icons.chrome_reader_mode_outlined, "Manage Academics", 1),
+                _buildNavItem(Icons.event, "Manage Events", 2),
+                _buildNavItem(Icons.feedback, "User Feedback", 3),
+                _buildNavItem(Icons.date_range_sharp, "Manage Routine", 4),
+                _buildNavItem(Icons.schedule_outlined, "Deadline Posting", 5),
+                _buildNavItem(Icons.supervisor_account_rounded, "Students", 6),
+                _buildNavItem(Icons.account_box_rounded, "Professors", 7),
+                _buildNavItem(Icons.money, "Fees", 8),
               ],
             ),
             Row(
@@ -88,25 +92,30 @@ class AdminNavBar extends StatelessWidget {
   void _navigateToPage(int index) {
     switch (index) {
       case 0:
-        Get.to(() => AdminDashboard()); // Navigate to Dashboard page
+        Get.to(() => AdminDashboard());
         break;
       case 1:
-        Get.to(() => ManageEvent()); // Navigate to Event Management page
+        Get.to(() => ManageAcademics());
         break;
       case 2:
-      Get.to(() => FeedbackPage()); // Navigate to Feedback page
-        break;
+      Get.to(() => ManageEvent());
       case 3:
-        Get.to(() => ProfessorsPage()); // Navigate to Professors page
+        Get.to(() => FeedbackPage());
         break;
       case 4:
-        Get.to(() => StudentsPage()); // Navigate to Students page
+        Get.to(() => ManageRoutineView());
         break;
     case 5:
-      Get.to(() => FeesPage()); // Navigate to Fees page
+      Get.to(() => DeadlinePosting());
       break;
       case 6:
-        Get.to(() => ManageRoutineView()); // Navigate to Manage routine page
+        Get.to(() => StudentsPage());
+        break;
+      case 7:
+        Get.to(() => ProfessorsPage());
+        break;
+      case 8:
+        Get.to(() => FeesPage());
         break;
       default:
       // Get.to(() => DashboardPage()); // Default fallback to Dashboard

@@ -11,7 +11,7 @@ class FeedbackPage extends StatelessWidget {
 
   FeedbackPage({super.key});
 
-  void _showUpdateFeedbackDialog(BuildContext context, CustomFeedback.Feedback feedback) {
+  void _showUpdateFeedbackDialog(BuildContext context, CustomFeedback.FeedbackModel feedback) {
     final contentController = TextEditingController(text: feedback.feedbackContent);
 
     showDialog(

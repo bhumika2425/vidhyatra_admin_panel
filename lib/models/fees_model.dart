@@ -1,40 +1,3 @@
-// class Fee {
-//   final String id; // Optional, if your backend assigns IDs
-//   final String feeType;
-//   final String feeDescription;
-//   final double feeAmount;
-//   final String dueDate;
-//   final String createdAt;
-//   final String updatedAt;
-//
-//   Fee({
-//     this.id = '',
-//     required this.feeType,
-//     required this.feeDescription,
-//     required this.feeAmount,
-//     required this.dueDate,
-//     required this.createdAt,
-//     required this.updatedAt,
-//   });
-// }
-//
-// class PaidFee {
-//   final String studentName;
-//   final String studentId;
-//   final String feeType;
-//   final double amountPaid;
-//   final String paymentDate;
-//
-//   PaidFee({
-//     required this.studentName,
-//     required this.studentId,
-//     required this.feeType,
-//     required this.amountPaid,
-//     required this.paymentDate,
-//   });
-// }
-
-// Dummy model for fees
 class Fee {
   final String id;
   final String feeType;
@@ -51,9 +14,33 @@ class Fee {
     required this.dueDate,
     required this.createdAt,
   });
+
+  // Factory method to create a Fee from JSON
+  factory Fee.fromJson(Map<String, dynamic> json) {
+    return Fee(
+      id: json['id']?.toString() ?? '',
+      feeType: json['feeType'] ?? '',
+      description: json['description'] ?? '',
+      amount: (json['amount'] is int ? json['amount'].toDouble() : json['amount']) ?? 0.0,
+      dueDate: json['dueDate'] ?? '',
+      createdAt: json['createdAt'] ?? '',
+    );
+  }
+
+  // Method to convert Fee to JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'feeType': feeType,
+      'description': description,
+      'amount': amount,
+      'dueDate': dueDate,
+      'createdAt': createdAt,
+    };
+  }
 }
 
-// Dummy model for fee payments
+// Model for fee payments
 class FeePayment {
   final String id;
   final String studentName;
@@ -72,4 +59,30 @@ class FeePayment {
     required this.paymentDate,
     required this.receiptNumber,
   });
+
+  // Factory method to create a FeePayment from JSON
+  factory FeePayment.fromJson(Map<String, dynamic> json) {
+    return FeePayment(
+      id: json['id']?.toString() ?? '',
+      studentName: json['studentName'] ?? '',
+      studentId: json['studentId'] ?? '',
+      feeType: json['feeType'] ?? '',
+      amount: (json['amount'] is int ? json['amount'].toDouble() : json['amount']) ?? 0.0,
+      paymentDate: json['paymentDate'] ?? '',
+      receiptNumber: json['receiptNumber'] ?? '',
+    );
+  }
+
+  // Method to convert FeePayment to JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'studentName': studentName,
+      'studentId': studentId,
+      'feeType': feeType,
+      'amount': amount,
+      'paymentDate': paymentDate,
+      'receiptNumber': receiptNumber,
+    };
+  }
 }
