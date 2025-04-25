@@ -11,6 +11,7 @@ class LandingPage extends StatelessWidget {
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
+      backgroundColor: Colors.grey[200],
       body: Center(
         child: Container(
           width: size.width,
@@ -56,7 +57,7 @@ class LandingPage extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
                     fontSize: 18,
-                    color: Colors.indigo.shade800,
+                    color: Colors.black,
                   ),
                 ),
               ),

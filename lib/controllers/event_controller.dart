@@ -24,9 +24,9 @@ class EventPostingController extends GetxController {
     errorMessage.value = '';
     successMessage.value = '';
 
-    print("Posting to: ${ApiEndpoints.postEvents}");
-    print("Token: ${loginController.token.value}");
-    print("Event data: ${json.encode(event.toJson())}");
+    // print("Posting to: ${ApiEndpoints.postEvents}");
+    // print("Token: ${loginController.token.value}");
+    // print("Event data: ${json.encode(event.toJson())}");
 
     try {
       Uri url = Uri.parse(ApiEndpoints.postEvents);
@@ -40,8 +40,8 @@ class EventPostingController extends GetxController {
         body: json.encode(event.toJson()),
       );
 
-      print("Response status: ${response.statusCode}");
-      print("Response body: ${response.body}");
+      // print("Response status: ${response.statusCode}");
+      // print("Response body: ${response.body}");
 
       if (response.statusCode == 201) {
         successMessage.value = 'Event created successfully!';
@@ -62,8 +62,8 @@ class EventPostingController extends GetxController {
     isLoading(true);
     errorMessage.value = '';
 
-    print("Fetching from: ${ApiEndpoints.getEvents}");
-    print("Token: ${loginController.token.value}");
+    // print("Fetching from: ${ApiEndpoints.getEvents}");
+    // print("Token: ${loginController.token.value}");
 
     try {
       Uri uri = Uri.parse(ApiEndpoints.getEvents);
@@ -73,8 +73,8 @@ class EventPostingController extends GetxController {
       };
       final response = await http.get(uri, headers: headers);
 
-      print("Response status: ${response.statusCode}");
-      print("Response body: ${response.body}");
+      // print("Response status: ${response.statusCode}");
+      // print("Response body: ${response.body}");
 
       if (response.statusCode == 200) {
         // Backend returns { message: "...", events: [...] }, so extract events

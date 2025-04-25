@@ -1,29 +1,63 @@
+import 'package:admin_panel/controllers/deadline_contoller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
-import '../controllers/fees_controller.dart';
-import '../models/fees_model.dart';
+import '../models/deadline_model.dart';
 import '../widgets/admin_navbar.dart';
 import '../widgets/admin_top_navbar.dart';
 
-class FeesPage extends StatelessWidget {
-  final FeeController controller = Get.put(FeeController());
+class ManageDeadline extends StatefulWidget {
+  const ManageDeadline({super.key});
+
+  @override
+  State<ManageDeadline> createState() => _ManageDeadlineState();
+}
+
+class _ManageDeadlineState extends State<ManageDeadline> {
+  int selectedIndex = 0;
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _feeTypeController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _amountController = TextEditingController();
-  final TextEditingController _dueDateController = TextEditingController();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _courseController = TextEditingController();
+  final TextEditingController _deadlineController = TextEditingController();
+  final TextEditingController _yearController = TextEditingController();
+  final TextEditingController _semesterController = TextEditingController();
 
-  FeesPage({super.key});
+  final DeadlineController deadlineController = Get.put(DeadlineController());
 
-  // Function to open date picker and set the date in the controller
-  Future<void> _selectDueDate(BuildContext context) async {
+  void _onNavItemSelected(int index) {
+    setState(() {
+      selectedIndex = index;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    deadlineController.fetchDeadlines();
+    _titleController.clear();
+    _courseController.clear();
+    _deadlineController.clear();
+    _yearController.clear();
+    _semesterController.clear();
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _courseController.dispose();
+    _deadlineController.dispose();
+    _yearController.dispose();
+    _semesterController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _selectDeadline() async {
     DateTime selectedDate = DateTime.now();
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: selectedDate,
-      firstDate: DateTime.now(),
+      firstDate: DateTime(2000),
       lastDate: DateTime(2101),
       builder: (context, child) {
         return Theme(
@@ -37,63 +71,115 @@ class FeesPage extends StatelessWidget {
       },
     );
     if (picked != null) {
-      _dueDateController.text = DateFormat('yyyy-MM-dd').format(picked);
+      _deadlineController.text = DateFormat('yyyy-MM-dd 00:00:00').format(picked);
     }
   }
 
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
-      // Create a new fee
-      final newFee = Fee(
-        id: (controller.fees.length + 1).toString(),
-        feeType: _feeTypeController.text,
-        description: _descriptionController.text,
-        amount: double.parse(_amountController.text),
-        dueDate: _dueDateController.text,
+      Deadline newDeadline = Deadline(
+        title: _titleController.text,
+        course: _courseController.text,
+        deadline: _deadlineController.text,
+        isCompleted: false,
         createdAt: DateTime.now().toIso8601String(),
+        updatedAt: DateTime.now().toIso8601String(),
+        year: _yearController.text,
+        semester: _semesterController.text,
       );
 
-      // Add the fee
-      controller.addFee(newFee);
+      deadlineController.postDeadline(newDeadline);
 
-      // Clear form fields
-      _feeTypeController.clear();
-      _descriptionController.clear();
-      _amountController.clear();
-      _dueDateController.clear();
-
-      // Show success message
-      Get.snackbar(
-        'Success',
-        'Fee added successfully',
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      _titleController.clear();
+      _courseController.clear();
+      _deadlineController.clear();
+      _yearController.clear();
+      _semesterController.clear();
     }
+  }
+
+  void _editDeadline(Deadline deadline) {
+    _titleController.text = deadline.title;
+    _courseController.text = deadline.course;
+    _deadlineController.text = deadline.deadline;
+    _yearController.text = deadline.year;
+    _semesterController.text = deadline.semester;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Edit Deadline', style: TextStyle(color: Color(0xFF042F6B))),
+        content: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                _buildTextField('Title', _titleController, Icons.title),
+                _buildTextField('Course', _courseController, Icons.book),
+                _buildDateField('Deadline', _deadlineController),
+                _buildTextField('Year', _yearController, Icons.school),
+                _buildTextField('Semester', _semesterController, Icons.calendar_today),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: Color(0xFF042F6B))),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (_formKey.currentState!.validate()) {
+                deadlineController.updateDeadline(
+                  Deadline(
+                    id: deadline.id,
+                    title: _titleController.text,
+                    course: _courseController.text,
+                    deadline: _deadlineController.text,
+                    isCompleted: deadline.isCompleted,
+                    createdAt: deadline.createdAt,
+                    updatedAt: DateTime.now().toIso8601String(),
+                    year: _yearController.text,
+                    semester: _semesterController.text,
+                  ),
+                );
+                Navigator.pop(context);
+                _titleController.clear();
+                _courseController.clear();
+                _deadlineController.clear();
+                _yearController.clear();
+                _semesterController.clear();
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF042F6B),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: Text('Update', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(60),
         child: AdminTopNavBar(),
       ),
       body: Row(
         children: [
-          AdminNavBar(onTap: (index) {
-            // Handle sidebar navigation if needed
-          }),
+          AdminNavBar(onTap: _onNavItemSelected),
           Expanded(
             child: Container(
-              color: Colors.grey[200], // Grey 200 background color
+              color: Colors.grey[200],
               padding: const EdgeInsets.all(20.0),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Fee Form Section (30% of the screen width)
                   Container(
                     width: MediaQuery.of(context).size.width * 0.3,
                     padding: EdgeInsets.all(20.0),
@@ -115,10 +201,10 @@ class FeesPage extends StatelessWidget {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.payments, color: Color(0xFF042F6B), size: 28),
+                              Icon(Icons.assignment, color: Color(0xFF042F6B), size: 28),
                               SizedBox(width: 10),
                               Text(
-                                "Manage Fees",
+                                'Manage Deadlines',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 24,
@@ -128,29 +214,11 @@ class FeesPage extends StatelessWidget {
                             ],
                           ),
                           Divider(height: 30, thickness: 1),
-                          _buildTextField(
-                            "Fee Type",
-                            _feeTypeController,
-                            Icons.category,
-                            context,
-                          ),
-                          _buildDescriptionTextField(
-                            "Fee Description",
-                            _descriptionController,
-                            context,
-                          ),
-                          _buildTextField(
-                            "Amount",
-                            _amountController,
-                            Icons.attach_money,
-                            context,
-                            isNumber: true,
-                          ),
-                          _buildDateField(
-                            "Due Date",
-                            _dueDateController,
-                            context,
-                          ),
+                          _buildTextField('Title', _titleController, Icons.title),
+                          _buildTextField('Course', _courseController, Icons.book),
+                          _buildDateField('Deadline', _deadlineController),
+                          _buildTextField('Year', _yearController, Icons.school),
+                          _buildTextField('Semester', _semesterController, Icons.calendar_today),
                           SizedBox(height: 20),
                           Center(
                             child: SizedBox(
@@ -171,7 +239,7 @@ class FeesPage extends StatelessWidget {
                                     Icon(Icons.add_circle, color: Colors.white),
                                     SizedBox(width: 10),
                                     Text(
-                                      "Add New Fee",
+                                      'Add New Deadline',
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -188,7 +256,6 @@ class FeesPage extends StatelessWidget {
                     ),
                   ),
                   SizedBox(width: 20),
-                  // Fee Payments List Section
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
@@ -204,14 +271,13 @@ class FeesPage extends StatelessWidget {
                       ),
                       padding: EdgeInsets.all(20),
                       child: Obx(() {
-                        // Checking if the data is still loading
-                        if (controller.isLoading.value) {
+                        if (deadlineController.isLoading.value) {
                           return Center(
                             child: CircularProgressIndicator(
                               color: Color(0xFF042F6B),
                             ),
                           );
-                        } else if (controller.errorMessage.isNotEmpty) {
+                        } else if (deadlineController.errorMessage.isNotEmpty) {
                           return Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -219,7 +285,7 @@ class FeesPage extends StatelessWidget {
                                 Icon(Icons.error_outline, color: Colors.red, size: 48),
                                 SizedBox(height: 16),
                                 Text(
-                                  'Error: ${controller.errorMessage}',
+                                  'Error: ${deadlineController.errorMessage}',
                                   style: TextStyle(
                                     color: Colors.red,
                                     fontSize: 16,
@@ -228,19 +294,19 @@ class FeesPage extends StatelessWidget {
                               ],
                             ),
                           );
-                        } else if (controller.feePayments.isEmpty) {
+                        } else if (deadlineController.deadlines.isEmpty) {
                           return Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
-                                  Icons.payments_outlined,
+                                  Icons.assignment_late,
                                   size: 64,
                                   color: Colors.grey,
                                 ),
                                 SizedBox(height: 16),
                                 Text(
-                                  'No fee payments available',
+                                  'No deadlines available',
                                   style: TextStyle(
                                     fontSize: 18,
                                     color: Colors.grey[700],
@@ -248,7 +314,7 @@ class FeesPage extends StatelessWidget {
                                 ),
                                 SizedBox(height: 8),
                                 Text(
-                                  'Students will appear here after paying fees',
+                                  'Add a new deadline to get started',
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.grey[600],
@@ -258,7 +324,6 @@ class FeesPage extends StatelessWidget {
                             ),
                           );
                         } else {
-                          // Display fee payments in a ListView
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -270,7 +335,7 @@ class FeesPage extends StatelessWidget {
                                       Icon(Icons.list_alt, color: Color(0xFF042F6B), size: 28),
                                       SizedBox(width: 10),
                                       Text(
-                                        "Fee Payments",
+                                        'Deadline List',
                                         style: TextStyle(
                                           fontSize: 24,
                                           fontWeight: FontWeight.bold,
@@ -280,7 +345,7 @@ class FeesPage extends StatelessWidget {
                                     ],
                                   ),
                                   Text(
-                                    "${controller.feePayments.length} Payment${controller.feePayments.length > 1 ? 's' : ''}",
+                                    '${deadlineController.deadlines.length} Deadline${deadlineController.deadlines.length > 1 ? 's' : ''}',
                                     style: TextStyle(
                                       color: Colors.grey[600],
                                       fontWeight: FontWeight.w500,
@@ -291,9 +356,9 @@ class FeesPage extends StatelessWidget {
                               Divider(height: 30, thickness: 1),
                               Expanded(
                                 child: ListView.builder(
-                                  itemCount: controller.feePayments.length,
+                                  itemCount: deadlineController.deadlines.length,
                                   itemBuilder: (context, index) {
-                                    var payment = controller.feePayments[index];
+                                    var deadline = deadlineController.deadlines[index];
                                     return Card(
                                       elevation: 3,
                                       margin: EdgeInsets.only(bottom: 16),
@@ -325,7 +390,7 @@ class FeesPage extends StatelessWidget {
                                                   mainAxisAlignment: MainAxisAlignment.center,
                                                   children: [
                                                     Text(
-                                                      "${index + 1}",
+                                                      '${index + 1}',
                                                       style: TextStyle(
                                                         color: Colors.white,
                                                         fontSize: 22,
@@ -333,7 +398,7 @@ class FeesPage extends StatelessWidget {
                                                       ),
                                                     ),
                                                     Icon(
-                                                      Icons.person,
+                                                      Icons.assignment,
                                                       color: Colors.white,
                                                       size: 22,
                                                     ),
@@ -350,20 +415,20 @@ class FeesPage extends StatelessWidget {
                                                     crossAxisAlignment: CrossAxisAlignment.start,
                                                     children: [
                                                       Text(
-                                                        "${payment.studentName}",
+                                                        deadline.title,
                                                         style: TextStyle(
                                                           fontWeight: FontWeight.bold,
-                                                          fontSize: 16,
+                                                          fontSize: 13,
                                                           color: Color(0xFF042F6B),
                                                         ),
                                                       ),
                                                       SizedBox(height: 8),
                                                       Row(
                                                         children: [
-                                                          Icon(Icons.badge, size: 14, color: Colors.grey[600]),
+                                                          Icon(Icons.book, size: 14, color: Colors.grey[600]),
                                                           SizedBox(width: 4),
                                                           Text(
-                                                            "ID: ${payment.studentId}",
+                                                            deadline.course,
                                                             style: TextStyle(
                                                               color: Colors.grey[700],
                                                               fontSize: 14,
@@ -374,10 +439,10 @@ class FeesPage extends StatelessWidget {
                                                       SizedBox(height: 4),
                                                       Row(
                                                         children: [
-                                                          Icon(Icons.category, size: 14, color: Colors.grey[600]),
+                                                          Icon(Icons.calendar_today, size: 14, color: Colors.grey[600]),
                                                           SizedBox(width: 4),
                                                           Text(
-                                                            "Fee: ${payment.feeType}",
+                                                            deadline.deadline.split(' ')[0],
                                                             style: TextStyle(
                                                               color: Colors.grey[700],
                                                               fontSize: 14,
@@ -388,35 +453,13 @@ class FeesPage extends StatelessWidget {
                                                       SizedBox(height: 4),
                                                       Row(
                                                         children: [
-                                                          Expanded(
-                                                            child: Row(
-                                                              children: [
-                                                                Icon(Icons.attach_money, size: 14, color: Colors.grey[600]),
-                                                                SizedBox(width: 4),
-                                                                Text(
-                                                                  "Amount: ₹${payment.amount.toStringAsFixed(2)}",
-                                                                  style: TextStyle(
-                                                                    color: Colors.grey[700],
-                                                                    fontSize: 14,
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                          SizedBox(width: 16),
-                                                          Expanded(
-                                                            child: Row(
-                                                              children: [
-                                                                Icon(Icons.calendar_today, size: 14, color: Colors.grey[600]),
-                                                                SizedBox(width: 4),
-                                                                Text(
-                                                                  "Paid: ${payment.paymentDate}",
-                                                                  style: TextStyle(
-                                                                    color: Colors.grey[700],
-                                                                    fontSize: 14,
-                                                                  ),
-                                                                ),
-                                                              ],
+                                                          Icon(Icons.school, size: 14, color: Colors.grey[600]),
+                                                          SizedBox(width: 4),
+                                                          Text(
+                                                            '${deadline.year} - ${deadline.semester}',
+                                                            style: TextStyle(
+                                                              color: Colors.grey[700],
+                                                              fontSize: 14,
                                                             ),
                                                           ),
                                                         ],
@@ -431,23 +474,21 @@ class FeesPage extends StatelessWidget {
                                                   children: [
                                                     IconButton(
                                                       icon: Icon(
-                                                        Icons.receipt_long,
-                                                        color: Colors.green,
+                                                        Icons.edit,
+                                                        color: Colors.blue,
                                                       ),
-                                                      onPressed: () {
-                                                        // View receipt action
-                                                      },
-                                                      tooltip: "View Receipt",
+                                                      onPressed: () => _editDeadline(deadline),
+                                                      tooltip: 'Edit Deadline',
                                                     ),
                                                     IconButton(
                                                       icon: Icon(
-                                                        Icons.print,
-                                                        color: Colors.blue,
+                                                        Icons.delete,
+                                                        color: Colors.red,
                                                       ),
                                                       onPressed: () {
-                                                        // Print receipt action
+                                                        deadlineController.deleteDeadline(deadline.id!);
                                                       },
-                                                      tooltip: "Print Receipt",
+                                                      tooltip: 'Delete Deadline',
                                                     ),
                                                   ],
                                                 ),
@@ -475,18 +516,11 @@ class FeesPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField(
-      String label,
-      TextEditingController controller,
-      IconData icon,
-      BuildContext context, {
-        bool isNumber = false,
-      }) {
+  Widget _buildTextField(String label, TextEditingController controller, IconData icon) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
         controller: controller,
-        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: Icon(icon, color: Color(0xFF042F6B)),
@@ -507,12 +541,7 @@ class FeesPage extends StatelessWidget {
         ),
         validator: (value) {
           if (value == null || value.isEmpty) {
-            return "Please enter $label";
-          }
-          if (isNumber) {
-            if (double.tryParse(value) == null) {
-              return "Please enter a valid number";
-            }
+            return 'Please enter $label';
           }
           return null;
         },
@@ -520,52 +549,7 @@ class FeesPage extends StatelessWidget {
     );
   }
 
-  Widget _buildDescriptionTextField(
-      String label,
-      TextEditingController controller,
-      BuildContext context,
-      ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: TextFormField(
-        controller: controller,
-        maxLines: 3,
-        decoration: InputDecoration(
-          labelText: label,
-          prefixIcon: Padding(
-            padding: const EdgeInsets.only(bottom: 64),
-            child: Icon(Icons.description, color: Color(0xFF042F6B)),
-          ),
-          filled: true,
-          fillColor: Colors.grey[50],
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(color: Colors.grey[300]!),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(color: Colors.grey[300]!),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(color: Color(0xFF042F6B), width: 2),
-          ),
-        ),
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return "Please enter $label";
-          }
-          return null;
-        },
-      ),
-    );
-  }
-
-  Widget _buildDateField(
-      String label,
-      TextEditingController controller,
-      BuildContext context,
-      ) {
+  Widget _buildDateField(String label, TextEditingController controller) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
@@ -589,10 +573,10 @@ class FeesPage extends StatelessWidget {
             borderSide: BorderSide(color: Color(0xFF042F6B), width: 2),
           ),
         ),
-        onTap: () => _selectDueDate(context),
+        onTap: _selectDeadline,
         validator: (value) {
           if (value == null || value.isEmpty) {
-            return "Please select a date";
+            return 'Please select a date';
           }
           return null;
         },

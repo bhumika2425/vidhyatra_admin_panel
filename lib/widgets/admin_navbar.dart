@@ -1,5 +1,5 @@
 import 'package:admin_panel/screens/dashboard.dart';
-import 'package:admin_panel/screens/deadline_posting.dart';
+import 'package:admin_panel/screens/manage_deadline.dart';
 import 'package:admin_panel/screens/manage_academics.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -19,6 +19,7 @@ class AdminNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return Container(
       width: 250,
       decoration: BoxDecoration(
@@ -106,7 +107,7 @@ class AdminNavBar extends StatelessWidget {
         Get.to(() => ManageRoutineView());
         break;
     case 5:
-      Get.to(() => DeadlinePosting());
+      Get.to(() => ManageDeadline());
       break;
       case 6:
         Get.to(() => StudentsPage());

@@ -130,6 +130,7 @@ class _ManageEventState extends State<ManageEvent> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[200],
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(60),
         child: AdminTopNavBar(),
@@ -469,7 +470,7 @@ class _ManageEventState extends State<ManageEvent> {
                                                     IconButton(
                                                       icon: Icon(
                                                         Icons.edit,
-                                                        color: Colors.blue,
+                                                        color: Color(0xFF042F6B),
                                                       ),
                                                       onPressed: () {
                                                         // Trigger edit action
@@ -480,7 +481,7 @@ class _ManageEventState extends State<ManageEvent> {
                                                     IconButton(
                                                       icon: Icon(
                                                         Icons.delete,
-                                                        color: Colors.red,
+                                                        color: Colors.red ,
                                                       ),
                                                       onPressed: () {
                                                         // Trigger delete action

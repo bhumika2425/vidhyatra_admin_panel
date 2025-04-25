@@ -84,9 +84,9 @@ class FeedbackController extends GetxController {
       isLoading.value = true;
       errorMessage.value = '';
 
-      final uri = Uri.parse("");
+      final uri = Uri.parse(ApiEndpoints.getFeedback);
       final token = loginController.token.value;
-
+      print("fetch get feedback api= ${ApiEndpoints.getFeedback}");
       if (token.isEmpty) {
         errorMessage.value = 'Authentication token is missing';
         return;

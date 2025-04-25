@@ -1,5 +1,5 @@
 class ApiEndpoints{
-  static const baseUrl = 'http://192.168.1.10:3001';
+  static const baseUrl = 'http://192.168.100.245:3001';
   static const login = '${baseUrl}/api/adminLoginRoutes/admin/login';
 
   //events
@@ -11,5 +11,10 @@ class ApiEndpoints{
 
   // get students
   static const getStudents= "${baseUrl}/api/auth/students";
+
+  static const getFeedback= "${baseUrl}/api/feedback";
+  // get students
+
+
 
 }

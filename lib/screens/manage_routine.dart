@@ -576,7 +576,7 @@ class ManageRoutineView extends StatelessWidget {
         child: AdminTopNavBar(),
       ),
       body: Container(
-        color: Color(0xFFE9EDF2),
+        color:Colors.grey[200],
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -605,7 +605,15 @@ class ManageRoutineView extends StatelessWidget {
 
   Widget _buildRoutineConfigsList(BuildContext context) {
     return Container(
-      color: Colors.white,
+      decoration: BoxDecoration(
+       color: Colors.white,
+        border: Border(
+          top: BorderSide(
+            color: Colors.white,  // White separator line to match the previous style
+            width: 3,            // Same width as the previous separator
+          ),
+        ),
+      ),
       child: Column(
         children: [
           // Header
@@ -651,7 +659,6 @@ class ManageRoutineView extends StatelessWidget {
       ),
     );
   }
-
   // Widget _buildRoutineConfigItem(BuildContext context, Map<String, String> config) {
   //   return Card(
   //     margin: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
@@ -720,8 +727,7 @@ class ManageRoutineView extends StatelessWidget {
                 'Error',
                 'Invalid configuration ID',
                 snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: Colors.red.withOpacity(0.1),
-                colorText: Colors.red,
+
               );
             }
           } else {
@@ -730,8 +736,7 @@ class ManageRoutineView extends StatelessWidget {
               'Error',
               'Missing configuration ID',
               snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.red.withOpacity(0.1),
-              colorText: Colors.red,
+
             );
           }
         },
@@ -981,7 +986,7 @@ class ManageRoutineView extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 24.0),
                   child: Text(
                     "No routine entries added yet",
-                    style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+                    style: TextStyle(fontStyle: FontStyle.italic, color: Colors.white),
                   ),
                 )
               else
