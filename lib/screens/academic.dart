@@ -1,29 +1,33 @@
-import 'package:admin_panel/controllers/deadline_contoller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
-import '../models/deadline_model.dart';
+import '../controllers/academic_controller.dart';
+import '../models/academic_model.dart';
 import '../widgets/admin_navbar.dart';
 import '../widgets/admin_top_navbar.dart';
 
-class ManageDeadline extends StatefulWidget {
-  const ManageDeadline({super.key});
+class ManageAcademic extends StatefulWidget {
+  const ManageAcademic({super.key});
 
   @override
-  State<ManageDeadline> createState() => _ManageDeadlineState();
+  State<ManageAcademic> createState() => _ManageAcademicState();
 }
 
-class _ManageDeadlineState extends State<ManageDeadline> {
+class _ManageAcademicState extends State<ManageAcademic> {
   int selectedIndex = 0;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _courseController = TextEditingController();
-  final TextEditingController _deadlineController = TextEditingController();
-  final TextEditingController _yearController = TextEditingController();
-  final TextEditingController _semesterController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _venueController = TextEditingController();
+  final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _startTimeController = TextEditingController();
+  final TextEditingController _durationController = TextEditingController();
 
-  final DeadlineController deadlineController = Get.put(DeadlineController());
+  String _selectedYear = '1st year'; // Default year selection
+  final List<String> _yearOptions = ['1st year', '2nd Year', '3rd Year'];
+
+  final AcademicController academicController = Get.put(AcademicController());
 
   void _onNavItemSelected(int index) {
     setState(() {
@@ -34,25 +38,49 @@ class _ManageDeadlineState extends State<ManageDeadline> {
   @override
   void initState() {
     super.initState();
-    deadlineController.fetchDeadlines();
+    academicController.fetchAcademics(); // Fetch academic calendar entries
+
+    // Clear all controllers
     _titleController.clear();
-    _courseController.clear();
-    _deadlineController.clear();
-    _yearController.clear();
-    _semesterController.clear();
+    _descriptionController.clear();
+    _venueController.clear();
+    _dateController.clear();
+    _startTimeController.clear();
+    _durationController.clear();
   }
 
   @override
   void dispose() {
     _titleController.dispose();
-    _courseController.dispose();
-    _deadlineController.dispose();
-    _yearController.dispose();
-    _semesterController.dispose();
+    _descriptionController.dispose();
+    _venueController.dispose();
+    _dateController.dispose();
+    _startTimeController.dispose();
+    _durationController.dispose();
     super.dispose();
   }
 
-  Future<void> _selectDeadline() async {
+  // Helper function to convert TimeOfDay to HH:mm format
+  String _convertTo24HourFormat(TimeOfDay time) {
+    final DateFormat formatter = DateFormat('HH:mm');
+    final DateTime parsedTime = DateTime(0, 0, 0, time.hour, time.minute);
+    return formatter.format(parsedTime);
+  }
+
+  // Function to open time picker and set the time in the controller
+  Future<void> _selectStartTime() async {
+    TimeOfDay selectedTime = TimeOfDay.now(); // default time is current time
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: selectedTime,
+    );
+    if (picked != null && picked != selectedTime) {
+      _startTimeController.text = _convertTo24HourFormat(picked);
+    }
+  }
+
+  // Function to open date picker and set the date in the controller
+  Future<void> _selectDate() async {
     DateTime selectedDate = DateTime.now();
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -71,101 +99,45 @@ class _ManageDeadlineState extends State<ManageDeadline> {
       },
     );
     if (picked != null) {
-      _deadlineController.text = DateFormat('yyyy-MM-dd 00:00:00').format(picked);
+      _dateController.text = DateFormat('yyyy-MM-dd').format(picked);
     }
   }
 
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
-      Deadline newDeadline = Deadline(
+      // Prepare academic data and create an Academic instance
+      Academic newAcademic = Academic(
         title: _titleController.text,
-        course: _courseController.text,
-        deadline: _deadlineController.text,
-        isCompleted: false,
+        description: _descriptionController.text,
+        venue: _venueController.text,
+        examDate: _dateController.text,
+        examStartTime: _startTimeController.text,
+        examDuration: _durationController.text,
+        year: _selectedYear,
         createdAt: DateTime.now().toIso8601String(),
         updatedAt: DateTime.now().toIso8601String(),
-        year: _yearController.text,
-        semester: _semesterController.text,
       );
 
-      deadlineController.postDeadline(newDeadline);
+      // Call the postAcademic method from AcademicController
+      academicController.postAcademic(newAcademic);
 
+      // Clear form fields after submission
       _titleController.clear();
-      _courseController.clear();
-      _deadlineController.clear();
-      _yearController.clear();
-      _semesterController.clear();
+      _descriptionController.clear();
+      _venueController.clear();
+      _dateController.clear();
+      _startTimeController.clear();
+      _durationController.clear();
+      setState(() {
+        _selectedYear = '1st year'; // Reset to default
+      });
     }
-  }
-
-  void _editDeadline(Deadline deadline) {
-    _titleController.text = deadline.title;
-    _courseController.text = deadline.course;
-    _deadlineController.text = deadline.deadline;
-    _yearController.text = deadline.year;
-    _semesterController.text = deadline.semester;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Edit Deadline', style: TextStyle(color: Color(0xFF042F6B))),
-        content: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                _buildTextField('Title', _titleController, Icons.title),
-                _buildTextField('Course', _courseController, Icons.book),
-                _buildDateField('Deadline', _deadlineController),
-                _buildTextField('Year', _yearController, Icons.school),
-                _buildTextField('Semester', _semesterController, Icons.calendar_today),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: TextStyle(color: Color(0xFF042F6B))),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                deadlineController.updateDeadline(
-                  Deadline(
-                    id: deadline.id,
-                    title: _titleController.text,
-                    course: _courseController.text,
-                    deadline: _deadlineController.text,
-                    isCompleted: deadline.isCompleted,
-                    createdAt: deadline.createdAt,
-                    updatedAt: DateTime.now().toIso8601String(),
-                    year: _yearController.text,
-                    semester: _semesterController.text,
-                  ),
-                );
-                Navigator.pop(context);
-                _titleController.clear();
-                _courseController.clear();
-                _deadlineController.clear();
-                _yearController.clear();
-                _semesterController.clear();
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF042F6B),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            child: Text('Update', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[200],
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(60),
         child: AdminTopNavBar(),
@@ -180,6 +152,7 @@ class _ManageDeadlineState extends State<ManageDeadline> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Form Section (30% of the screen width)
                   Container(
                     width: MediaQuery.of(context).size.width * 0.3,
                     padding: EdgeInsets.all(20.0),
@@ -201,24 +174,26 @@ class _ManageDeadlineState extends State<ManageDeadline> {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.assignment, color: Color(0xFF042F6B), size: 28),
+                              Icon(Icons.calendar_month, color: Color(0xFF042F6B), size: 28),
                               SizedBox(width: 10),
                               Text(
-                                'Manage Deadlines',
+                                "Manage Academic Calendar",
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 24,
+                                  fontSize: 22,
                                   color: Color(0xFF042F6B),
                                 ),
                               ),
                             ],
                           ),
                           Divider(height: 30, thickness: 1),
-                          _buildTextField('Title', _titleController, Icons.title),
-                          _buildTextField('Course', _courseController, Icons.book),
-                          _buildDateField('Deadline', _deadlineController),
-                          _buildTextField('Year', _yearController, Icons.school),
-                          _buildTextField('Semester', _semesterController, Icons.calendar_today),
+                          _buildTextField("Exam Title", _titleController, Icons.title),
+                          _buildDescriptionTextField("Description", _descriptionController),
+                          _buildTextField("Venue", _venueController, Icons.location_on),
+                          _buildDateField("Exam Date", _dateController),
+                          _buildTimeField("Start Time", _startTimeController),
+                          _buildTextField("Duration (e.g. 2 hours)", _durationController, Icons.hourglass_bottom),
+                          _buildYearDropdown(),
                           SizedBox(height: 20),
                           Center(
                             child: SizedBox(
@@ -239,7 +214,7 @@ class _ManageDeadlineState extends State<ManageDeadline> {
                                     Icon(Icons.add_circle, color: Colors.white),
                                     SizedBox(width: 10),
                                     Text(
-                                      'Add New Deadline',
+                                      "Add to Academic Calendar",
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -256,6 +231,7 @@ class _ManageDeadlineState extends State<ManageDeadline> {
                     ),
                   ),
                   SizedBox(width: 20),
+                  // Academic List Section
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
@@ -271,13 +247,14 @@ class _ManageDeadlineState extends State<ManageDeadline> {
                       ),
                       padding: EdgeInsets.all(20),
                       child: Obx(() {
-                        if (deadlineController.isLoading.value) {
+                        // Checking if the academic entries are still loading
+                        if (academicController.isLoading.value) {
                           return Center(
                             child: CircularProgressIndicator(
                               color: Color(0xFF042F6B),
                             ),
                           );
-                        } else if (deadlineController.errorMessage.isNotEmpty) {
+                        } else if (academicController.errorMessage.isNotEmpty) {
                           return Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -285,7 +262,7 @@ class _ManageDeadlineState extends State<ManageDeadline> {
                                 Icon(Icons.error_outline, color: Colors.red, size: 48),
                                 SizedBox(height: 16),
                                 Text(
-                                  'Error: ${deadlineController.errorMessage}',
+                                  'Error: ${academicController.errorMessage}',
                                   style: TextStyle(
                                     color: Colors.red,
                                     fontSize: 16,
@@ -294,19 +271,19 @@ class _ManageDeadlineState extends State<ManageDeadline> {
                               ],
                             ),
                           );
-                        } else if (deadlineController.deadlines.isEmpty) {
+                        } else if (academicController.academics.isEmpty) {
                           return Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
-                                  Icons.assignment_late,
+                                  Icons.calendar_today,
                                   size: 64,
                                   color: Colors.grey,
                                 ),
                                 SizedBox(height: 16),
                                 Text(
-                                  'No deadlines available',
+                                  'No academic calendar entries available',
                                   style: TextStyle(
                                     fontSize: 18,
                                     color: Colors.grey[700],
@@ -314,7 +291,7 @@ class _ManageDeadlineState extends State<ManageDeadline> {
                                 ),
                                 SizedBox(height: 8),
                                 Text(
-                                  'Add a new deadline to get started',
+                                  'Add a new entry to get started',
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.grey[600],
@@ -324,6 +301,7 @@ class _ManageDeadlineState extends State<ManageDeadline> {
                             ),
                           );
                         } else {
+                          // Display academic entries in a ListView
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -335,7 +313,7 @@ class _ManageDeadlineState extends State<ManageDeadline> {
                                       Icon(Icons.list_alt, color: Color(0xFF042F6B), size: 28),
                                       SizedBox(width: 10),
                                       Text(
-                                        'Deadline List',
+                                        "Academic Calendar List",
                                         style: TextStyle(
                                           fontSize: 24,
                                           fontWeight: FontWeight.bold,
@@ -345,7 +323,7 @@ class _ManageDeadlineState extends State<ManageDeadline> {
                                     ],
                                   ),
                                   Text(
-                                    '${deadlineController.deadlines.length} Deadline${deadlineController.deadlines.length > 1 ? 's' : ''}',
+                                    "${academicController.academics.length} Entr${academicController.academics.length > 1 ? 'ies' : 'y'}",
                                     style: TextStyle(
                                       color: Colors.grey[600],
                                       fontWeight: FontWeight.w500,
@@ -356,9 +334,9 @@ class _ManageDeadlineState extends State<ManageDeadline> {
                               Divider(height: 30, thickness: 1),
                               Expanded(
                                 child: ListView.builder(
-                                  itemCount: deadlineController.deadlines.length,
+                                  itemCount: academicController.academics.length,
                                   itemBuilder: (context, index) {
-                                    var deadline = deadlineController.deadlines[index];
+                                    var academic = academicController.academics[index];
                                     return Card(
                                       elevation: 3,
                                       margin: EdgeInsets.only(bottom: 16),
@@ -390,7 +368,7 @@ class _ManageDeadlineState extends State<ManageDeadline> {
                                                   mainAxisAlignment: MainAxisAlignment.center,
                                                   children: [
                                                     Text(
-                                                      '${index + 1}',
+                                                      "${index + 1}",
                                                       style: TextStyle(
                                                         color: Colors.white,
                                                         fontSize: 22,
@@ -398,7 +376,7 @@ class _ManageDeadlineState extends State<ManageDeadline> {
                                                       ),
                                                     ),
                                                     Icon(
-                                                      Icons.assignment,
+                                                      Icons.school,
                                                       color: Colors.white,
                                                       size: 22,
                                                     ),
@@ -414,21 +392,62 @@ class _ManageDeadlineState extends State<ManageDeadline> {
                                                   child: Column(
                                                     crossAxisAlignment: CrossAxisAlignment.start,
                                                     children: [
-                                                      Text(
-                                                        deadline.title,
-                                                        style: TextStyle(
-                                                          fontWeight: FontWeight.bold,
-                                                          fontSize: 13,
-                                                          color: Color(0xFF042F6B),
-                                                        ),
+                                                      Row(
+                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                        children: [
+                                                          Text(
+                                                            "${academic.title}",
+                                                            style: TextStyle(
+                                                              fontWeight: FontWeight.bold,
+                                                              fontSize: 16,
+                                                              color: Color(0xFF042F6B),
+                                                            ),
+                                                          ),
+                                                          Container(
+                                                            padding: EdgeInsets.symmetric(
+                                                              horizontal: 8,
+                                                              vertical: 4,
+                                                            ),
+                                                            decoration: BoxDecoration(
+                                                              color: Color(0xFF042F6B).withOpacity(0.1),
+                                                              borderRadius: BorderRadius.circular(12),
+                                                            ),
+                                                            child: Text(
+                                                              "${academic.year}",
+                                                              style: TextStyle(
+                                                                color: Color(0xFF042F6B),
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 12,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
                                                       ),
                                                       SizedBox(height: 8),
                                                       Row(
                                                         children: [
-                                                          Icon(Icons.book, size: 14, color: Colors.grey[600]),
+                                                          Icon(Icons.description, size: 14, color: Colors.grey[600]),
+                                                          SizedBox(width: 4),
+                                                          Expanded(
+                                                            child: Text(
+                                                              "${academic.description}",
+                                                              style: TextStyle(
+                                                                color: Colors.grey[700],
+                                                                fontSize: 14,
+                                                              ),
+                                                              maxLines: 2,
+                                                              overflow: TextOverflow.ellipsis,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      SizedBox(height: 4),
+                                                      Row(
+                                                        children: [
+                                                          Icon(Icons.location_on, size: 14, color: Colors.grey[600]),
                                                           SizedBox(width: 4),
                                                           Text(
-                                                            deadline.course,
+                                                            "${academic.venue}",
                                                             style: TextStyle(
                                                               color: Colors.grey[700],
                                                               fontSize: 14,
@@ -439,27 +458,51 @@ class _ManageDeadlineState extends State<ManageDeadline> {
                                                       SizedBox(height: 4),
                                                       Row(
                                                         children: [
-                                                          Icon(Icons.calendar_today, size: 14, color: Colors.grey[600]),
-                                                          SizedBox(width: 4),
-                                                          Text(
-                                                            deadline.deadline.split(' ')[0],
-                                                            style: TextStyle(
-                                                              color: Colors.grey[700],
-                                                              fontSize: 14,
+                                                          Expanded(
+                                                            child: Row(
+                                                              children: [
+                                                                Icon(Icons.calendar_today, size: 14, color: Colors.grey[600]),
+                                                                SizedBox(width: 4),
+                                                                Text(
+                                                                  "${academic.examDate}",
+                                                                  style: TextStyle(
+                                                                    color: Colors.grey[700],
+                                                                    fontSize: 14,
+                                                                  ),
+                                                                ),
+                                                              ],
                                                             ),
                                                           ),
-                                                        ],
-                                                      ),
-                                                      SizedBox(height: 4),
-                                                      Row(
-                                                        children: [
-                                                          Icon(Icons.school, size: 14, color: Colors.grey[600]),
-                                                          SizedBox(width: 4),
-                                                          Text(
-                                                            '${deadline.year} - ${deadline.semester}',
-                                                            style: TextStyle(
-                                                              color: Colors.grey[700],
-                                                              fontSize: 14,
+                                                          SizedBox(width: 8),
+                                                          Expanded(
+                                                            child: Row(
+                                                              children: [
+                                                                Icon(Icons.access_time, size: 14, color: Colors.grey[600]),
+                                                                SizedBox(width: 4),
+                                                                Text(
+                                                                  "${academic.examStartTime}",
+                                                                  style: TextStyle(
+                                                                    color: Colors.grey[700],
+                                                                    fontSize: 14,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                          SizedBox(width: 8),
+                                                          Expanded(
+                                                            child: Row(
+                                                              children: [
+                                                                Icon(Icons.hourglass_bottom, size: 14, color: Colors.grey[600]),
+                                                                SizedBox(width: 4),
+                                                                Text(
+                                                                  "${academic.examDuration}",
+                                                                  style: TextStyle(
+                                                                    color: Colors.grey[700],
+                                                                    fontSize: 14,
+                                                                  ),
+                                                                ),
+                                                              ],
                                                             ),
                                                           ),
                                                         ],
@@ -477,8 +520,11 @@ class _ManageDeadlineState extends State<ManageDeadline> {
                                                         Icons.edit,
                                                         color: Color(0xFF042F6B),
                                                       ),
-                                                      onPressed: () => _editDeadline(deadline),
-                                                      tooltip: 'Edit Deadline',
+                                                      onPressed: () {
+                                                        // Trigger edit action
+                                                        // _editAcademic(academic);
+                                                      },
+                                                      tooltip: "Edit Entry",
                                                     ),
                                                     IconButton(
                                                       icon: Icon(
@@ -486,9 +532,10 @@ class _ManageDeadlineState extends State<ManageDeadline> {
                                                         color: Colors.red,
                                                       ),
                                                       onPressed: () {
-                                                        deadlineController.deleteDeadline(deadline.id!);
+                                                        // Trigger delete action
+                                                        // _deleteAcademic(academic);
                                                       },
-                                                      tooltip: 'Delete Deadline',
+                                                      tooltip: "Delete Entry",
                                                     ),
                                                   ],
                                                 ),
@@ -541,7 +588,44 @@ class _ManageDeadlineState extends State<ManageDeadline> {
         ),
         validator: (value) {
           if (value == null || value.isEmpty) {
-            return 'Please enter $label';
+            return "Please enter $label";
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
+  Widget _buildDescriptionTextField(String label, TextEditingController controller) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: controller,
+        maxLines: 3,
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Padding(
+            padding: const EdgeInsets.only(bottom: 64),
+            child: Icon(Icons.description, color: Color(0xFF042F6B)),
+          ),
+          filled: true,
+          fillColor: Colors.grey[50],
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Colors.grey[300]!),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Colors.grey[300]!),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Color(0xFF042F6B), width: 2),
+          ),
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return "Please enter $label";
           }
           return null;
         },
@@ -573,10 +657,91 @@ class _ManageDeadlineState extends State<ManageDeadline> {
             borderSide: BorderSide(color: Color(0xFF042F6B), width: 2),
           ),
         ),
-        onTap: _selectDeadline,
+        onTap: _selectDate,
         validator: (value) {
           if (value == null || value.isEmpty) {
-            return 'Please select a date';
+            return "Please select a date";
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
+  Widget _buildTimeField(String label, TextEditingController controller) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: controller,
+        readOnly: true,
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(Icons.access_time, color: Color(0xFF042F6B)),
+          filled: true,
+          fillColor: Colors.grey[50],
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Colors.grey[300]!),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Colors.grey[300]!),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Color(0xFF042F6B), width: 2),
+          ),
+        ),
+        onTap: _selectStartTime,
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return "Please select a time";
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
+  Widget _buildYearDropdown() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: DropdownButtonFormField<String>(
+        decoration: InputDecoration(
+          labelText: "Student Year",
+          prefixIcon: Icon(Icons.school, color: Color(0xFF042F6B)),
+          filled: true,
+          fillColor: Colors.grey[50],
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Colors.grey[300]!),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Colors.grey[300]!),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Color(0xFF042F6B), width: 2),
+          ),
+        ),
+        value: _selectedYear,
+        items: _yearOptions.map((String year) {
+          return DropdownMenuItem<String>(
+            value: year,
+            child: Text(year),
+          );
+        }).toList(),
+        onChanged: (String? newValue) {
+          if (newValue != null) {
+            setState(() {
+              _selectedYear = newValue;
+            });
+          }
+        },
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return "Please select a year";
           }
           return null;
         },

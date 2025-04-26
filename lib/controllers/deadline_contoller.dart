@@ -61,8 +61,8 @@ class DeadlineController extends GetxController {
         year: deadline.year,
         semester: deadline.semester,
       ));
-      Get.snackbar('Success', 'Deadline posted successfully',
-          backgroundColor: Color(0xFF042F6B), colorText: Colors.white);
+      Get.snackbar('Success', 'Deadline posted successfully');
+          // backgroundColor: Color(0xFF042F6B), colorText: Colors.white);
     } catch (e) {
       errorMessage('Failed to post deadline: $e');
       Get.snackbar('Error', 'Failed to post deadline',
@@ -80,8 +80,7 @@ class DeadlineController extends GetxController {
       final index = deadlines.indexWhere((d) => d.id == deadline.id);
       if (index != -1) {
         deadlines[index] = deadline;
-        Get.snackbar('Success', 'Deadline updated successfully',
-            backgroundColor: Color(0xFF042F6B), colorText: Colors.white);
+        Get.snackbar('Success', 'Deadline updated successfully');
       }
     } catch (e) {
       errorMessage('Failed to update deadline: $e');

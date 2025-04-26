@@ -33,13 +33,23 @@ class StudentsPage extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text('Cancel', style: TextStyle(color:Color(0xFF042F6B) ),),
           ),
           ElevatedButton(
+
             onPressed: () {
               // Update student logic here
               Navigator.pop(context);
+              Get.snackbar(
+    'Success', // Title
+    'Student details updated successfully!', // Message
+    snackPosition: SnackPosition.TOP, // You can also use SnackPosition.TOP
+    );
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF042F6B), // Deep blue button background
+              foregroundColor: Colors.white,            // White text color
+            ),
             // style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF971F20)),
             child: const Text('Update'),
           ),
@@ -57,7 +67,7 @@ class StudentsPage extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
+            child: const Text("Cancel", style: TextStyle(color: Color(0xFF042F6B)),),
           ),
           ElevatedButton(
             onPressed: () {
