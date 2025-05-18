@@ -58,9 +58,8 @@ class RoutineController extends GetxController {
       Get.snackbar(
         'Incomplete Information',
         'Please select all fields first',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withOpacity(0.1),
-        colorText: Colors.red,
+        snackPosition: SnackPosition.TOP,
+
       );
     }
   }
@@ -73,6 +72,37 @@ class RoutineController extends GetxController {
         selectedRoom.value != null &&
         selectedStartTime.value != null &&
         selectedEndTime.value != null) {
+      // Check 1: Time Conflict - Start time must be before End time
+      final startMinutes = selectedStartTime.value!.hour * 60 + selectedStartTime.value!.minute;
+      final endMinutes = selectedEndTime.value!.hour * 60 + selectedEndTime.value!.minute;
+
+      if (startMinutes >= endMinutes) {
+        Get.snackbar(
+          'Invalid Time Selection',
+          'Start time must be before end time.',
+          snackPosition: SnackPosition.TOP,
+        );
+        return;
+      }
+
+      // Check 2: Duplicate Entry in Same Day
+      final existingEntries = routinesByDay[selectedDay.value]!;
+      final isDuplicate = existingEntries.any((entry) =>
+      entry.subject == selectedSubject.value &&
+          entry.teacher == selectedTeacher.value &&
+          entry.startTime == selectedStartTime.value!.format(Get.context!)
+      );
+
+      if (isDuplicate) {
+        Get.snackbar(
+          'Duplicate Entry',
+          'Same subject, teacher, and start time already exist for this day.',
+          snackPosition: SnackPosition.TOP,
+        );
+        return;
+      }
+
+
       final newEntry = RoutineEntry(
         subject: selectedSubject.value!,
         teacher: selectedTeacher.value!,
@@ -95,9 +125,8 @@ class RoutineController extends GetxController {
       Get.snackbar(
         'Incomplete Information',
         'Please fill all routine details',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withOpacity(0.1),
-        colorText: Colors.red,
+        snackPosition: SnackPosition.TOP,
+
       );
     }
   }
@@ -156,13 +185,12 @@ class RoutineController extends GetxController {
         throw Exception('Failed to fetch routines: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching routines: $e');
+
       Get.snackbar(
         'Error',
         'Failed to fetch existing routines',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withOpacity(0.1),
-        colorText: Colors.red,
+        snackPosition: SnackPosition.TOP,
+
       );
       return [];
     }
@@ -202,13 +230,12 @@ class RoutineController extends GetxController {
         throw Exception('Failed to fetch routines for config_id $configId: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching routines by config_id: $e');
+
       Get.snackbar(
         'Error',
         'Failed to fetch routine details',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withOpacity(0.1),
-        colorText: Colors.red,
+        snackPosition: SnackPosition.TOP,
+
       );
       return null;
     }
@@ -229,13 +256,12 @@ class RoutineController extends GetxController {
         throw Exception('Failed to save routine: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error saving routine: $e');
+
       Get.snackbar(
         'Error',
         'Failed to save routine',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withOpacity(0.1),
-        colorText: Colors.red,
+        snackPosition: SnackPosition.TOP,
+
       );
       return false;
     }
@@ -250,9 +276,9 @@ class RoutineController extends GetxController {
       Get.snackbar(
         'Success',
         'Routine submitted successfully!',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green.withOpacity(0.1),
-        colorText: Colors.green,
+        snackPosition: SnackPosition.TOP,
+
+
       );
 
       // Reset everything for a new routine
@@ -271,9 +297,8 @@ class RoutineController extends GetxController {
       Get.snackbar(
         'Error',
         'Failed to submit routine',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withOpacity(0.1),
-        colorText: Colors.red,
+        snackPosition: SnackPosition.TOP,
+
       );
     }
   }

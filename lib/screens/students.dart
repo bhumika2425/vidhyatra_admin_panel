@@ -17,68 +17,91 @@ class StudentsPage extends StatelessWidget {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Update Student'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Name')),
-              TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email')),
-              TextField(controller: collegeIdController, decoration: const InputDecoration(labelText: 'College ID')),
-              TextField(controller: roleController, decoration: const InputDecoration(labelText: 'Role')),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Update Student'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: nameController,
+                    decoration: const InputDecoration(labelText: 'Name'),
+                  ),
+                  TextField(
+                    controller: emailController,
+                    decoration: const InputDecoration(labelText: 'Email'),
+                  ),
+                  TextField(
+                    controller: collegeIdController,
+                    decoration: const InputDecoration(labelText: 'College ID'),
+                  ),
+                  TextField(
+                    controller: roleController,
+                    decoration: const InputDecoration(labelText: 'Role'),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: Color(0xFF042F6B)),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  // Update student logic here
+                  Navigator.pop(context);
+                  Get.snackbar(
+                    'Success', // Title
+                    'Student details updated successfully!', // Message
+                    snackPosition:
+                        SnackPosition.TOP, // You can also use SnackPosition.TOP
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF042F6B),
+                  // Deep blue button background
+                  foregroundColor: Colors.white, // White text color
+                ),
+                // style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF971F20)),
+                child: const Text('Update'),
+              ),
             ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color:Color(0xFF042F6B) ),),
-          ),
-          ElevatedButton(
-
-            onPressed: () {
-              // Update student logic here
-              Navigator.pop(context);
-              Get.snackbar(
-    'Success', // Title
-    'Student details updated successfully!', // Message
-    snackPosition: SnackPosition.TOP, // You can also use SnackPosition.TOP
-    );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF042F6B), // Deep blue button background
-              foregroundColor: Colors.white,            // White text color
-            ),
-            // style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF971F20)),
-            child: const Text('Update'),
-          ),
-        ],
-      ),
     );
   }
 
   void _confirmDeleteStudent(BuildContext context, int studentId) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Delete Student"),
-        content: const Text("Are you sure you want to delete this student?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel", style: TextStyle(color: Color(0xFF042F6B)),),
+      builder:
+          (_) => AlertDialog(
+            title: const Text("Delete Student"),
+            content: const Text(
+              "Are you sure you want to delete this student?",
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text(
+                  "Cancel",
+                  style: TextStyle(color: Color(0xFF042F6B)),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  // controller.deleteStudent(studentId); // Uncomment when logic is ready
+                  Navigator.pop(context);
+                },
+                // style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF971F20)),
+                child: const Text("Delete"),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () {
-              // controller.deleteStudent(studentId); // Uncomment when logic is ready
-              Navigator.pop(context);
-            },
-            // style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF971F20)),
-            child: const Text("Delete"),
-          ),
-        ],
-      ),
     );
   }
 
@@ -104,28 +127,39 @@ class StudentsPage extends StatelessWidget {
                     children: [
                       const Text(
                         "Students",
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: Color(0xFF042F6B).withOpacity(0.1),
                           borderRadius: BorderRadius.circular(7),
                         ),
-                        child: Obx(() => Text(
-                          "${controller.students.length} Student${controller.students.length != 1 ? 's' : ''}",
-                          style: TextStyle(
-                            color: Color(0xFF042F6B),
-                            fontWeight: FontWeight.w600,
+                        child: Obx(
+                          () => Text(
+                            "${controller.students.length} Student${controller.students.length != 1 ? 's' : ''}",
+                            style: TextStyle(
+                              color: Color(0xFF042F6B),
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        )),
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 20),
                   // Header Row
                   Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 16,
+                    ),
                     decoration: BoxDecoration(
                       color: Color(0xFF042F6B),
                       borderRadius: BorderRadius.only(
@@ -213,7 +247,11 @@ class StudentsPage extends StatelessWidget {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.error_outline, color: Colors.red, size: 48),
+                              Icon(
+                                Icons.error_outline,
+                                color: Colors.red,
+                                size: 48,
+                              ),
                               const SizedBox(height: 16),
                               Text(
                                 controller.errorMessage.value,
@@ -226,7 +264,10 @@ class StudentsPage extends StatelessWidget {
                                 onPressed: () => controller.fetchStudents(),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Color(0xFF042F6B),
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
                                 ),
                                 label: const Text('Retry'),
                               ),
@@ -274,7 +315,8 @@ class StudentsPage extends StatelessWidget {
 
                               return Container(
                                 decoration: BoxDecoration(
-                                  color: isEven ? Colors.white : Colors.grey[50],
+                                  color:
+                                      isEven ? Colors.white : Colors.grey[50],
                                   border: Border(
                                     bottom: BorderSide(
                                       color: Colors.grey[300]!,
@@ -283,7 +325,10 @@ class StudentsPage extends StatelessWidget {
                                   ),
                                 ),
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                    horizontal: 16,
+                                  ),
                                   child: Row(
                                     children: [
                                       // ID
@@ -351,14 +396,16 @@ class StudentsPage extends StatelessWidget {
                                       SizedBox(
                                         width: 120,
                                         child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.end,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
                                           children: [
                                             IconButton(
                                               icon: Container(
                                                 padding: EdgeInsets.all(6),
                                                 decoration: BoxDecoration(
                                                   color: Colors.white,
-                                                  borderRadius: BorderRadius.circular(8),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
                                                 ),
                                                 child: Icon(
                                                   Icons.edit,
@@ -366,7 +413,12 @@ class StudentsPage extends StatelessWidget {
                                                   size: 18,
                                                 ),
                                               ),
-                                              onPressed: () => _showUpdateStudentDialog(context, student),
+                                              onPressed:
+                                                  () =>
+                                                      _showUpdateStudentDialog(
+                                                        context,
+                                                        student,
+                                                      ),
                                               tooltip: "Edit Student",
                                             ),
                                             IconButton(
@@ -374,7 +426,8 @@ class StudentsPage extends StatelessWidget {
                                                 padding: EdgeInsets.all(6),
                                                 decoration: BoxDecoration(
                                                   color: Colors.white,
-                                                  borderRadius: BorderRadius.circular(8),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
                                                 ),
                                                 child: Icon(
                                                   Icons.delete,
@@ -382,7 +435,11 @@ class StudentsPage extends StatelessWidget {
                                                   size: 18,
                                                 ),
                                               ),
-                                              onPressed: () => _confirmDeleteStudent(context, student.userId),
+                                              onPressed:
+                                                  () => _confirmDeleteStudent(
+                                                    context,
+                                                    student.userId,
+                                                  ),
                                               tooltip: "Delete Student",
                                             ),
                                           ],

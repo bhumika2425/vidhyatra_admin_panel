@@ -29,8 +29,7 @@ class LoginController extends GetxController {
 
         loggedInAdmin.value = admin;
 
-        print('Token: ${token.value}'); // Debugging
-        print('Logged in: ${admin.name}');
+
 
         Get.offNamed('/dashboard');
       } else {

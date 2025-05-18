@@ -1,18 +1,17 @@
 import 'package:admin_panel/models/feedback_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../controllers/admin_dashboard_controller.dart';
 import '../controllers/event_controller.dart';
-
 import '../controllers/feedback_controller.dart';
-
 import '../controllers/fees_controller.dart';
 import '../controllers/professor_controller.dart';
 import '../controllers/routine_controller.dart';
 import '../controllers/student_controller.dart';
-
 import '../models/user_model.dart';
 import '../widgets/admin_navbar.dart';
 import '../widgets/admin_top_navbar.dart';
@@ -40,6 +39,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
     setState(() {
       selectedIndex = index;
     });
+    // Add navigation logic, e.g.:
+    // if (index == 2) Get.toNamed('/ManageEvent');
   }
 
   @override
@@ -86,12 +87,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   Widget _buildWelcomeSection() {
     return Obx(() {
-      final overdueFees = feeController.fees.where((fee) {
-        final dueDate = DateTime.parse(fee.dueDate);
-        return dueDate.isBefore(DateTime.now());
-      }).length;
 
-      // Assume students need review if recently added (no applicationStatus)
+
       final pendingApplications = studentsController.students
           .where((student) => student.createdAt.isAfter(DateTime.now().subtract(Duration(days: 30))))
           .length;
@@ -136,21 +133,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   SizedBox(height: 16),
                   Row(
                     children: [
-                      // _buildAlertCard(
-                      //   'Fee Payment Due',
-                      //   '$overdueFees students have overdue fees',
-                      //   Icons.warning_amber_rounded,
-                      //   Color(0xFFFEF3C7),
-                      //   Color(0xFFD97706),
-                      // ),
+                      // _buildAlertCard(...),
                       SizedBox(width: 12),
-                      // _buildAlertCard(
-                      //   'Pending Applications',
-                      //   '$pendingApplications new applications need review',
-                      //   Icons.person_add_alt_rounded,
-                      //   Color(0xFFE0F2FE),
-                      //   Color(0xFF0369A1),
-                      // ),
+                      // _buildAlertCard(...),
                     ],
                   ),
                 ],
@@ -304,15 +289,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     return Obx(() {
       final totalStudents = studentsController.students.length;
       final totalProfessors = professorController.professors.length;
-      final unpaidFees = feeController.fees
-          .where((fee) => DateTime.parse(fee.dueDate).isBefore(DateTime.now()))
-          .fold(0.0, (sum, fee) => sum + fee.amount);
-      final averageRating = feedbackController.feedbackList.isNotEmpty
-          ? feedbackController.feedbackList
-          .map((f) => f.rating)
-          .reduce((a, b) => a + b) /
-          feedbackController.feedbackList.length
-          : 0.0;
+
 
       return Row(
         children: [
@@ -339,17 +316,17 @@ class _AdminDashboardState extends State<AdminDashboard> {
           Expanded(
             child: _buildStatCard(
               'Unpaid Fees',
-              '\$${unpaidFees.toStringAsFixed(0)}',
+              '2',
               Colors.orange[700]!,
               Icons.account_balance_wallet_rounded,
-              '${feeController.fees.where((fee) => DateTime.parse(fee.dueDate).isBefore(DateTime.now())).length} students overdue',
+              ' students overdue',
             ),
           ),
           SizedBox(width: 16),
           Expanded(
             child: _buildStatCard(
               'App Feedback',
-              '${averageRating.toStringAsFixed(1)}/5',
+              '5',
               Colors.purple[700]!,
               Icons.thumbs_up_down_rounded,
               'Based on ${feedbackController.feedbackList.length} ratings',
@@ -727,7 +704,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   Widget _buildStudentApplicationItem(User student) {
-    // Assume pending status for recent students
     const status = 'Pending';
     const statusColor = Colors.orange;
 
@@ -860,8 +836,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         shape: BoxShape.circle,
                       ),
                       markersMaxCount: 3,
-                      outsideDaysVisible: false, // Reduce height by hiding outside days
-                      cellMargin: EdgeInsets.all(4), // Optimize spacing
+                      outsideDaysVisible: false,
+                      cellMargin: EdgeInsets.all(4),
                     ),
                     headerStyle: HeaderStyle(
                       formatButtonVisible: true,
@@ -896,7 +872,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
         Expanded(
           flex: 2,
           child: Container(
-            height: 380,
             padding: EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -912,43 +887,56 @@ class _AdminDashboardState extends State<AdminDashboard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Recent Feedback',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {},
-                      child: Text('View All'),
-                    ),
-                  ],
+                Text(
+                  'Recent Feedback',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B),
+                  ),
                 ),
                 SizedBox(height: 16),
-                Expanded(
-                  child: Obx(() {
-                    if (feedbackController.isLoading.value) {
-                      return Center(child: CircularProgressIndicator());
-                    }
-                    if (feedbackController.feedbackList.isEmpty) {
-                      return Center(child: Text('No feedback available'));
-                    }
-                    return ListView.separated(
-                      itemCount: feedbackController.feedbackList.length > 4
-                          ? 4
-                          : feedbackController.feedbackList.length,
-                      separatorBuilder: (context, index) => Divider(height: 24),
-                      itemBuilder: (context, index) {
-                        return _buildFeedbackItem(feedbackController.feedbackList[index]);
-                      },
+                Obx(() {
+                  if (feedbackController.isLoading.value) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  if (feedbackController.errorMessage.isNotEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            feedbackController.errorMessage.value,
+                            style: TextStyle(color: Colors.red),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: feedbackController.fetchFeedbacks,
+                            child: Text('Retry'),
+                          ),
+                        ],
+                      ),
                     );
-                  }),
-                ),
+                  }
+                  if (feedbackController.feedbackList.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'No feedback available',
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                    );
+                  }
+                  return ListView.separated(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: feedbackController.feedbackList.length.clamp(0, 5),
+                    separatorBuilder: (context, index) => SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      return _buildFeedbackItem(feedbackController.feedbackList[index]);
+                    },
+                  );
+                }),
               ],
             ),
           ),
@@ -958,66 +946,109 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   Widget _buildFeedbackItem(FeedbackModel feedback) {
-    // Display userId or 'Anonymous' if isAnonymous
-    final displayName = feedback.isAnonymous == 1 ? 'Anonymous' : feedback.userId.split(':').first;
-    return ListTile(
-      contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 0),
-      leading: CircleAvatar(
-        backgroundColor: Color(0xFFF1F5F9),
-        child: Text(
-          displayName.substring(0, 1),
-          style: TextStyle(
-            color: Color(0xFF1E293B),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+    final displayName = feedback.isAnonymous ? 'Anonymous' : '${feedback.username}';
+
+    return Container(
+      margin: EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
       ),
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            displayName,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
-            ),
-          ),
-          Row(
-            children: List.generate(5, (starIndex) {
-              return Icon(
-                starIndex < feedback.rating ? Icons.star : Icons.star_border,
-                size: 16,
-                color: Colors.amber,
-              );
-            }),
-          ),
-        ],
-      ),
-      subtitle: Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '${feedback.feedbackType} • ${feedback.timestamp.substring(0, 10)}',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                feedback.feedbackType,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+              Text(
+                DateFormat('MMM dd, yyyy').format(feedback.createdAt),
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 12,
+                ),
+              ),
+            ],
           ),
-          SizedBox(height: 4),
+          SizedBox(height: 8),
           Text(
             feedback.feedbackContent,
-            style: TextStyle(
-              fontSize: 14,
-              color: Color(0xFF334155),
-            ),
+            style: TextStyle(color: Colors.grey[800]),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
+          SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                displayName,
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 12,
+                  fontStyle: feedback.isAnonymous ? FontStyle.italic : FontStyle.normal,
+                ),
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.copy, size: 18),
+                    onPressed: () => _copyFeedbackContent(feedback.feedbackContent),
+                    color: Colors.blue,
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.delete, size: 18),
+                    onPressed: () => _confirmDeleteFeedback(feedback.id),
+                    color: Colors.red,
+                  ),
+                ],
+              ),
+            ],
+          ),
         ],
       ),
-      onTap: () {
-        Get.snackbar('Feedback', 'Clicked on $displayName\'s feedback');
-      },
+    );
+  }
+
+  void _copyFeedbackContent(String content) {
+    Clipboard.setData(ClipboardData(text: content));
+    Get.snackbar(
+      'Success',
+      'Feedback content copied to clipboard',
+      backgroundColor: Colors.green,
+      colorText: Colors.white,
+      duration: Duration(seconds: 2),
+    );
+  }
+
+  void _confirmDeleteFeedback(int id) {
+    Get.dialog(
+      AlertDialog(
+        title: Text('Delete Feedback'),
+        content: Text('Are you sure you want to delete this feedback?'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Get.back();
+              feedbackController.deleteFeedback(id);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: Text('Delete'),
+          ),
+        ],
+      ),
     );
   }
 }

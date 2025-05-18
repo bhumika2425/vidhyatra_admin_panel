@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-
 import '../controllers/fees_controller.dart';
+import '../controllers/login_controller.dart';
 import '../models/fees_model.dart';
 import '../widgets/admin_navbar.dart';
 import '../widgets/admin_top_navbar.dart';
 
 class FeesPage extends StatelessWidget {
   final FeeController controller = Get.put(FeeController());
+  final LoginController loginController = Get.find<LoginController>();
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _feeTypeController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -17,20 +18,17 @@ class FeesPage extends StatelessWidget {
 
   FeesPage({super.key});
 
-  // Function to open date picker and set the date in the controller
   Future<void> _selectDueDate(BuildContext context) async {
-    DateTime selectedDate = DateTime.now();
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: selectedDate,
+      initialDate: DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime(2101),
       builder: (context, child) {
         return Theme(
           data: ThemeData.light().copyWith(
-            primaryColor: Color(0xFF042F6B),
-            colorScheme: ColorScheme.light(primary: Color(0xFF042F6B)),
-            buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
+            colorScheme: const ColorScheme.light(primary: Color(0xFF042F6B)),
+            buttonTheme: const ButtonThemeData(textTheme: ButtonTextTheme.primary),
           ),
           child: child!,
         );
@@ -43,33 +41,21 @@ class FeesPage extends StatelessWidget {
 
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
-      // Create a new fee
       final newFee = Fee(
-        id: (controller.fees.length + 1).toString(),
+        feeID: 0,
         feeType: _feeTypeController.text,
-        description: _descriptionController.text,
-        amount: double.parse(_amountController.text),
-        dueDate: _dueDateController.text,
-        createdAt: DateTime.now().toIso8601String(),
+        feeDescription: _descriptionController.text,
+        feeAmount: double.parse(_amountController.text),
+        dueDate: DateTime.parse(_dueDateController.text),
+        adminId: loginController.loggedInAdmin.value!.adminId,
       );
 
-      // Add the fee
       controller.addFee(newFee);
 
-      // Clear form fields
       _feeTypeController.clear();
       _descriptionController.clear();
       _amountController.clear();
       _dueDateController.clear();
-
-      // Show success message
-      Get.snackbar(
-        'Success',
-        'Fee added successfully',
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-      );
     }
   }
 
@@ -77,30 +63,26 @@ class FeesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[200],
-      appBar: PreferredSize(
+      appBar: const PreferredSize(
         preferredSize: Size.fromHeight(60),
         child: AdminTopNavBar(),
       ),
       body: Row(
         children: [
-          AdminNavBar(onTap: (index) {
-            // Handle sidebar navigation if needed
-          }),
+          AdminNavBar(onTap: (index) {}),
           Expanded(
             child: Container(
-              color: Colors.grey[200], // Grey 200 background color
               padding: const EdgeInsets.all(20.0),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Fee Form Section (30% of the screen width)
                   Container(
                     width: MediaQuery.of(context).size.width * 0.3,
-                    padding: EdgeInsets.all(20.0),
+                    padding: const EdgeInsets.all(20.0),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(15),
-                      boxShadow: [
+                      boxShadow: const [
                         BoxShadow(
                           color: Colors.black12,
                           blurRadius: 10,
@@ -114,7 +96,7 @@ class FeesPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
-                            children: [
+                            children: const [
                               Icon(Icons.payments, color: Color(0xFF042F6B), size: 28),
                               SizedBox(width: 10),
                               Text(
@@ -127,7 +109,7 @@ class FeesPage extends StatelessWidget {
                               ),
                             ],
                           ),
-                          Divider(height: 30, thickness: 1),
+                          const Divider(height: 30, thickness: 1),
                           _buildTextField(
                             "Fee Type",
                             _feeTypeController,
@@ -142,7 +124,7 @@ class FeesPage extends StatelessWidget {
                           _buildTextField(
                             "Amount",
                             _amountController,
-                            Icons.attach_money,
+                            Icons.currency_rupee,
                             context,
                             isNumber: true,
                           ),
@@ -151,15 +133,15 @@ class FeesPage extends StatelessWidget {
                             _dueDateController,
                             context,
                           ),
-                          SizedBox(height: 20),
+                          const SizedBox(height: 20),
                           Center(
                             child: SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
                                 onPressed: _submitForm,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color(0xFF042F6B),
-                                  padding: EdgeInsets.symmetric(vertical: 18),
+                                  backgroundColor: const Color(0xFF042F6B),
+                                  padding: const EdgeInsets.symmetric(vertical: 18),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
                                   ),
@@ -167,7 +149,7 @@ class FeesPage extends StatelessWidget {
                                 ),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
+                                  children: const [
                                     Icon(Icons.add_circle, color: Colors.white),
                                     SizedBox(width: 10),
                                     Text(
@@ -187,14 +169,13 @@ class FeesPage extends StatelessWidget {
                       ),
                     ),
                   ),
-                  SizedBox(width: 20),
-                  // Fee Payments List Section
+                  const SizedBox(width: 20),
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(15),
-                        boxShadow: [
+                        boxShadow: const [
                           BoxShadow(
                             color: Colors.black12,
                             blurRadius: 10,
@@ -202,11 +183,10 @@ class FeesPage extends StatelessWidget {
                           ),
                         ],
                       ),
-                      padding: EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(20),
                       child: Obx(() {
-                        // Checking if the data is still loading
                         if (controller.isLoading.value) {
-                          return Center(
+                          return const Center(
                             child: CircularProgressIndicator(
                               color: Color(0xFF042F6B),
                             ),
@@ -216,11 +196,11 @@ class FeesPage extends StatelessWidget {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.error_outline, color: Colors.red, size: 48),
-                                SizedBox(height: 16),
+                                const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                                const SizedBox(height: 16),
                                 Text(
                                   'Error: ${controller.errorMessage}',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: Colors.red,
                                     fontSize: 16,
                                   ),
@@ -228,11 +208,11 @@ class FeesPage extends StatelessWidget {
                               ],
                             ),
                           );
-                        } else if (controller.feePayments.isEmpty) {
+                        } else if (controller.fees.isEmpty) {
                           return Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
+                              children: const [
                                 Icon(
                                   Icons.payments_outlined,
                                   size: 64,
@@ -240,25 +220,16 @@ class FeesPage extends StatelessWidget {
                                 ),
                                 SizedBox(height: 16),
                                 Text(
-                                  'No fee payments available',
+                                  'No fees available',
                                   style: TextStyle(
                                     fontSize: 18,
-                                    color: Colors.grey[700],
-                                  ),
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  'Students will appear here after paying fees',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[600],
+                                    color: Colors.grey,
                                   ),
                                 ),
                               ],
                             ),
                           );
                         } else {
-                          // Display fee payments in a ListView
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -266,11 +237,11 @@ class FeesPage extends StatelessWidget {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Row(
-                                    children: [
+                                    children: const [
                                       Icon(Icons.list_alt, color: Color(0xFF042F6B), size: 28),
                                       SizedBox(width: 10),
                                       Text(
-                                        "Fee Payments",
+                                        "Fees",
                                         style: TextStyle(
                                           fontSize: 24,
                                           fontWeight: FontWeight.bold,
@@ -280,23 +251,23 @@ class FeesPage extends StatelessWidget {
                                     ],
                                   ),
                                   Text(
-                                    "${controller.feePayments.length} Payment${controller.feePayments.length > 1 ? 's' : ''}",
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
+                                    "${controller.fees.length} Fee${controller.fees.length > 1 ? 's' : ''}",
+                                    style: const TextStyle(
+                                      color: Colors.grey,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ],
                               ),
-                              Divider(height: 30, thickness: 1),
+                              const Divider(height: 30, thickness: 1),
                               Expanded(
                                 child: ListView.builder(
-                                  itemCount: controller.feePayments.length,
+                                  itemCount: controller.fees.length,
                                   itemBuilder: (context, index) {
-                                    var payment = controller.feePayments[index];
+                                    var fee = controller.fees[index];
                                     return Card(
                                       elevation: 3,
-                                      margin: EdgeInsets.only(bottom: 16),
+                                      margin: const EdgeInsets.only(bottom: 16),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(12),
                                       ),
@@ -313,8 +284,8 @@ class FeesPage extends StatelessWidget {
                                             crossAxisAlignment: CrossAxisAlignment.stretch,
                                             children: [
                                               Container(
-                                                padding: EdgeInsets.all(16),
-                                                decoration: BoxDecoration(
+                                                padding: const EdgeInsets.all(16),
+                                                decoration: const BoxDecoration(
                                                   color: Color(0xFF042F6B),
                                                   borderRadius: BorderRadius.only(
                                                     topLeft: Radius.circular(12),
@@ -326,14 +297,14 @@ class FeesPage extends StatelessWidget {
                                                   children: [
                                                     Text(
                                                       "${index + 1}",
-                                                      style: TextStyle(
+                                                      style: const TextStyle(
                                                         color: Colors.white,
                                                         fontSize: 22,
                                                         fontWeight: FontWeight.bold,
                                                       ),
                                                     ),
-                                                    Icon(
-                                                      Icons.person,
+                                                    const Icon(
+                                                      Icons.payment,
                                                       color: Colors.white,
                                                       size: 22,
                                                     ),
@@ -350,106 +321,60 @@ class FeesPage extends StatelessWidget {
                                                     crossAxisAlignment: CrossAxisAlignment.start,
                                                     children: [
                                                       Text(
-                                                        "${payment.studentName}",
-                                                        style: TextStyle(
+                                                        fee.feeType,
+                                                        style: const TextStyle(
                                                           fontWeight: FontWeight.bold,
                                                           fontSize: 16,
                                                           color: Color(0xFF042F6B),
                                                         ),
                                                       ),
-                                                      SizedBox(height: 8),
+                                                      const SizedBox(height: 8),
                                                       Row(
                                                         children: [
-                                                          Icon(Icons.badge, size: 14, color: Colors.grey[600]),
-                                                          SizedBox(width: 4),
+                                                          const Icon(Icons.description, size: 14, color: Colors.grey),
+                                                          const SizedBox(width: 4),
+                                                          Expanded(
+                                                            child: Text(
+                                                              "Description: ${fee.feeDescription}",
+                                                              style: const TextStyle(
+                                                                color: Colors.grey,
+                                                                fontSize: 14,
+                                                              ),
+                                                              overflow: TextOverflow.ellipsis,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      const SizedBox(height: 4),
+                                                      Row(
+                                                        children: [
+                                                          const Icon(Icons.currency_rupee, size: 14, color: Colors.grey),
+                                                          const SizedBox(width: 4),
                                                           Text(
-                                                            "ID: ${payment.studentId}",
-                                                            style: TextStyle(
-                                                              color: Colors.grey[700],
+                                                            "Amount: NRs ${fee.feeAmount.toStringAsFixed(2)}",
+                                                            style: const TextStyle(
+                                                              color: Colors.grey,
                                                               fontSize: 14,
                                                             ),
                                                           ),
                                                         ],
                                                       ),
-                                                      SizedBox(height: 4),
+                                                      const SizedBox(height: 4),
                                                       Row(
                                                         children: [
-                                                          Icon(Icons.category, size: 14, color: Colors.grey[600]),
-                                                          SizedBox(width: 4),
+                                                          const Icon(Icons.calendar_today, size: 14, color: Colors.grey),
+                                                          const SizedBox(width: 4),
                                                           Text(
-                                                            "Fee: ${payment.feeType}",
-                                                            style: TextStyle(
-                                                              color: Colors.grey[700],
+                                                            "Due: ${DateFormat('yyyy-MM-dd').format(fee.dueDate)}",
+                                                            style: const TextStyle(
+                                                              color: Colors.grey,
                                                               fontSize: 14,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      SizedBox(height: 4),
-                                                      Row(
-                                                        children: [
-                                                          Expanded(
-                                                            child: Row(
-                                                              children: [
-                                                                Icon(Icons.attach_money, size: 14, color: Colors.grey[600]),
-                                                                SizedBox(width: 4),
-                                                                Text(
-                                                                  "Amount: ₹${payment.amount.toStringAsFixed(2)}",
-                                                                  style: TextStyle(
-                                                                    color: Colors.grey[700],
-                                                                    fontSize: 14,
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                          SizedBox(width: 16),
-                                                          Expanded(
-                                                            child: Row(
-                                                              children: [
-                                                                Icon(Icons.calendar_today, size: 14, color: Colors.grey[600]),
-                                                                SizedBox(width: 4),
-                                                                Text(
-                                                                  "Paid: ${payment.paymentDate}",
-                                                                  style: TextStyle(
-                                                                    color: Colors.grey[700],
-                                                                    fontSize: 14,
-                                                                  ),
-                                                                ),
-                                                              ],
                                                             ),
                                                           ),
                                                         ],
                                                       ),
                                                     ],
                                                   ),
-                                                ),
-                                              ),
-                                              Container(
-                                                padding: EdgeInsets.symmetric(horizontal: 8),
-                                                child: Row(
-                                                  children: [
-                                                    IconButton(
-                                                      icon: Icon(
-                                                        Icons.receipt_long,
-                                                        color: Colors.green,
-                                                      ),
-                                                      onPressed: () {
-                                                        // View receipt action
-                                                      },
-                                                      tooltip: "View Receipt",
-                                                    ),
-                                                    IconButton(
-                                                      icon: Icon(
-                                                        Icons.print,
-                                                        color: Colors.blue,
-                                                      ),
-                                                      onPressed: () {
-                                                        // Print receipt action
-                                                      },
-                                                      tooltip: "Print Receipt",
-                                                    ),
-                                                  ],
                                                 ),
                                               ),
                                             ],
@@ -489,7 +414,7 @@ class FeesPage extends StatelessWidget {
         keyboardType: isNumber ? TextInputType.number : TextInputType.text,
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: Icon(icon, color: Color(0xFF042F6B)),
+          prefixIcon: Icon(icon, color: const Color(0xFF042F6B)),
           filled: true,
           fillColor: Colors.grey[50],
           border: OutlineInputBorder(
@@ -502,17 +427,15 @@ class FeesPage extends StatelessWidget {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(color: Color(0xFF042F6B), width: 2),
+            borderSide: const BorderSide(color: Color(0xFF042F6B), width: 2),
           ),
         ),
         validator: (value) {
           if (value == null || value.isEmpty) {
             return "Please enter $label";
           }
-          if (isNumber) {
-            if (double.tryParse(value) == null) {
-              return "Please enter a valid number";
-            }
+          if (isNumber && double.tryParse(value) == null) {
+            return "Please enter a valid number";
           }
           return null;
         },
@@ -532,8 +455,8 @@ class FeesPage extends StatelessWidget {
         maxLines: 3,
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: Padding(
-            padding: const EdgeInsets.only(bottom: 64),
+          prefixIcon: const Padding(
+            padding: EdgeInsets.only(bottom: 64),
             child: Icon(Icons.description, color: Color(0xFF042F6B)),
           ),
           filled: true,
@@ -548,7 +471,7 @@ class FeesPage extends StatelessWidget {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(color: Color(0xFF042F6B), width: 2),
+            borderSide: const BorderSide(color: Color(0xFF042F6B), width: 2),
           ),
         ),
         validator: (value) {
@@ -573,7 +496,7 @@ class FeesPage extends StatelessWidget {
         readOnly: true,
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: Icon(Icons.calendar_today, color: Color(0xFF042F6B)),
+          prefixIcon: const Icon(Icons.calendar_today, color: Color(0xFF042F6B)),
           filled: true,
           fillColor: Colors.grey[50],
           border: OutlineInputBorder(
@@ -586,7 +509,7 @@ class FeesPage extends StatelessWidget {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(color: Color(0xFF042F6B), width: 2),
+            borderSide: const BorderSide(color: Color(0xFF042F6B), width: 2),
           ),
         ),
         onTap: () => _selectDueDate(context),

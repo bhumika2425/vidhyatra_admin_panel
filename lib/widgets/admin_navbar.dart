@@ -1,6 +1,7 @@
+import 'package:admin_panel/screens/academic.dart';
 import 'package:admin_panel/screens/dashboard.dart';
 import 'package:admin_panel/screens/manage_deadline.dart';
-import 'package:admin_panel/screens/manage_academics.dart';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -96,7 +97,7 @@ class AdminNavBar extends StatelessWidget {
         Get.to(() => AdminDashboard());
         break;
       case 1:
-        Get.to(() => ManageAcademics());
+        Get.to(() => ManageAcademic());
         break;
       case 2:
       Get.to(() => ManageEvent());

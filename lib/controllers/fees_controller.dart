@@ -1,24 +1,21 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
-import '../constants/api_endpoints.dart';
+import 'package:intl/intl.dart';
 import '../models/fees_model.dart';
 import 'login_controller.dart';
 
 class FeeController extends GetxController {
   var isLoading = false.obs;
   var errorMessage = ''.obs;
-  var successMessage = ''.obs;
   var fees = <Fee>[].obs;
-  var feePayments = <FeePayment>[].obs;
-
   final LoginController loginController = Get.find<LoginController>();
 
   @override
   void onInit() {
     super.onInit();
     fetchFees();
-    fetchFeePayments();
   }
 
   Future<void> fetchFees() async {
@@ -26,82 +23,35 @@ class FeeController extends GetxController {
       isLoading.value = true;
       errorMessage.value = '';
 
-      final uri = Uri.parse("");
+      final uri = Uri.parse('http://localhost:3001/api/collegeFees/fees');
       final token = loginController.token.value;
 
       if (token.isEmpty) {
-        errorMessage.value = 'Authentication token is missing';
-        return;
+        throw 'Authentication token is missing';
       }
 
-      final headers = {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      };
-
-      final response = await http.get(uri, headers: headers);
+      final response = await http.get(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
 
       if (response.statusCode == 200) {
-        final jsonResponse = json.decode(response.body);
-        if (jsonResponse is Map<String, dynamic> && jsonResponse.containsKey('data')) {
-          final feesData = jsonResponse['data'];
-          if (feesData is List) {
-            fees.value = feesData.map((fee) => Fee.fromJson(fee as Map<String, dynamic>)).toList();
-            successMessage.value = 'Fees fetched successfully';
-          } else {
-            errorMessage.value = 'Data field is not a list';
-          }
-        } else {
-          errorMessage.value = 'Invalid response format';
-        }
+        final List<dynamic> feesList = json.decode(response.body);
+        fees.value = feesList.map((fee) => Fee.fromJson(fee)).toList();
       } else {
-        errorMessage.value = 'Failed to load fees: ${response.statusCode} - ${response.body}';
+        throw 'Failed to load fees: ${response.statusCode}';
       }
     } catch (e) {
-      errorMessage.value = 'Error fetching fees: $e';
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  Future<void> fetchFeePayments() async {
-    try {
-      isLoading.value = true;
-      errorMessage.value = '';
-
-      final uri = Uri.parse("");
-      final token = loginController.token.value;
-
-      if (token.isEmpty) {
-        errorMessage.value = 'Authentication token is missing';
-        return;
-      }
-
-      final headers = {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      };
-
-      final response = await http.get(uri, headers: headers);
-
-      if (response.statusCode == 200) {
-        final jsonResponse = json.decode(response.body);
-        if (jsonResponse is Map<String, dynamic> && jsonResponse.containsKey('data')) {
-          final paymentsData = jsonResponse['data'];
-          if (paymentsData is List) {
-            feePayments.value = paymentsData.map((payment) => FeePayment.fromJson(payment as Map<String, dynamic>)).toList();
-            successMessage.value = 'Fee payments fetched successfully';
-          } else {
-            errorMessage.value = 'Data field is not a list';
-          }
-        } else {
-          errorMessage.value = 'Invalid response format';
-        }
-      } else {
-        errorMessage.value = 'Failed to load fee payments: ${response.statusCode} - ${response.body}';
-      }
-    } catch (e) {
-      errorMessage.value = 'Error fetching fee payments: $e';
+      errorMessage.value = e.toString();
+      Get.snackbar(
+        'Error',
+        errorMessage.value,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     } finally {
       isLoading.value = false;
     }
@@ -112,26 +62,46 @@ class FeeController extends GetxController {
       isLoading.value = true;
       errorMessage.value = '';
 
-      final uri = Uri.parse("");
+      final uri = Uri.parse('http://localhost:3001/api/collegeFees/fees');
       final token = loginController.token.value;
 
-      final headers = {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      };
+      if (token.isEmpty) {
+        throw 'Authentication token is missing';
+      }
 
-      final body = json.encode(fee.toJson());
+      final response = await http.post(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'feeType': fee.feeType,
+          'feeDescription': fee.feeDescription,
+          'feeAmount': fee.feeAmount,
+          'dueDate': DateFormat('yyyy-MM-dd').format(fee.dueDate),
+        }),
+      );
 
-      final response = await http.post(uri, headers: headers, body: body);
-
-      if (response.statusCode == 201 || response.statusCode == 200) {
+      if (response.statusCode == 201) {
         await fetchFees();
-        successMessage.value = 'Fee added successfully';
+        Get.snackbar(
+          'Success',
+          'Fee added successfully',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
       } else {
-        errorMessage.value = 'Failed to add fee: ${response.statusCode} - ${response.body}';
+        throw 'Failed to add fee: ${response.statusCode}';
       }
     } catch (e) {
-      errorMessage.value = 'Error adding fee: $e';
+      errorMessage.value = e.toString();
+      Get.snackbar(
+        'Error',
+        errorMessage.value,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     } finally {
       isLoading.value = false;
     }

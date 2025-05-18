@@ -24,10 +24,6 @@ class EventPostingController extends GetxController {
     errorMessage.value = '';
     successMessage.value = '';
 
-    // print("Posting to: ${ApiEndpoints.postEvents}");
-    // print("Token: ${loginController.token.value}");
-    // print("Event data: ${json.encode(event.toJson())}");
-
     try {
       Uri url = Uri.parse(ApiEndpoints.postEvents);
       Map<String, String> headers = {
@@ -40,19 +36,15 @@ class EventPostingController extends GetxController {
         body: json.encode(event.toJson()),
       );
 
-      // print("Response status: ${response.statusCode}");
-      // print("Response body: ${response.body}");
-
       if (response.statusCode == 201) {
         successMessage.value = 'Event created successfully!';
         Get.snackbar('Event Posted', 'Event posted successfully');
         fetchEvents();
       } else {
-        errorMessage.value = 'Failed to create event: ${response.statusCode} - ${response.body}';
+        Get.snackbar('Failed to create event', 'Events cannot be in the past');
       }
     } catch (e) {
       errorMessage.value = 'Error: $e';
-      print("Exception: $e");
     } finally {
       isLoading(false);
     }
@@ -62,9 +54,6 @@ class EventPostingController extends GetxController {
     isLoading(true);
     errorMessage.value = '';
 
-    // print("Fetching from: ${ApiEndpoints.getEvents}");
-    // print("Token: ${loginController.token.value}");
-
     try {
       Uri uri = Uri.parse(ApiEndpoints.getEvents);
       Map<String, String> headers = {
@@ -73,26 +62,14 @@ class EventPostingController extends GetxController {
       };
       final response = await http.get(uri, headers: headers);
 
-      // print("Response status: ${response.statusCode}");
-      // print("Response body: ${response.body}");
-
       if (response.statusCode == 200) {
-        // Backend returns { message: "...", events: [...] }, so extract events
-        final jsonResponse = json.decode(response.body);
-        if (response.statusCode == 200) {
-          // Backend returns a List directly: [{...}, ...]
-          final List<dynamic> jsonResponse = json.decode(response.body);
-          events.value = jsonResponse.map((event) => Event.fromJson(event)).toList();
-          print("Events fetched: ${events.length} items");
-        } else {
-          errorMessage.value = 'Failed to load events: ${response.statusCode} - ${response.body}';
-        }
+        final List<dynamic> jsonResponse = json.decode(response.body);
+        events.value = jsonResponse.map((event) => Event.fromJson(event)).toList();
       } else {
         errorMessage.value = 'Failed to load events: ${response.statusCode} - ${response.body}';
       }
     } catch (e) {
       errorMessage.value = 'Error: $e';
-      print("Exception: $e");
     } finally {
       isLoading(false);
     }

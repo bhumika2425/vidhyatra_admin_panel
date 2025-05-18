@@ -28,13 +28,8 @@ class ProfessorController extends GetxController {
 
       final uri = Uri.parse(ApiEndpoints.getProfessors);
       final token = loginController.token.value;
-
-      print('Fetching professors from: $uri');
-      print('Using token: $token');
-
       if (token.isEmpty) {
         errorMessage.value = 'Authentication token is missing';
-        print('Error: Token is empty');
         return;
       }
 
@@ -43,54 +38,42 @@ class ProfessorController extends GetxController {
         'Content-Type': 'application/json',
       };
 
-      print('Request headers: $headers');
 
       final response = await http.get(uri, headers: headers);
-
-      print('Response status code: ${response.statusCode}');
-      print('Response headers: ${response.headers}');
-      print('Raw response body: ${response.body}');
-
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
-        print('Decoded JSON response: $jsonResponse');
 
         // Check if response is a Map and contains 'data' key
         if (jsonResponse is Map<String, dynamic> && jsonResponse.containsKey('data')) {
           final professorsData = jsonResponse['data'];
-          print('Extracted data array: $professorsData');
 
           if (professorsData is List) {
             try {
               professors.value = professorsData.map((professor) {
-                print('Parsing professors: $professor');
                 return User.fromJson(professor as Map<String, dynamic>);
               }).toList();
               successMessage.value = 'professors fetched successfully';
-              print('Successfully parsed ${professors.length} professors');
             } catch (e) {
               errorMessage.value = 'Error parsing professors data: $e';
-              print('Parsing error: $e');
             }
           } else {
             errorMessage.value = 'Data field is not a list: ${professorsData.runtimeType}';
-            print('Error: Expected List but got ${professorsData.runtimeType}');
+
           }
         } else {
           errorMessage.value = 'Invalid response format: Expected object with "data" key';
-          print('Error: Unexpected response structure: ${jsonResponse.runtimeType}');
+
         }
       } else {
         errorMessage.value = 'Failed to load professors: ${response.statusCode} - ${response.body}';
-        print('Error response: ${response.statusCode} - ${response.body}');
+
       }
     } catch (e) {
       errorMessage.value = 'Error fetching professors: $e';
-      print('Exception caught: $e');
-      print('Stack trace: ${StackTrace.current}');
+
     } finally {
       isLoading.value = false;
-      print('Fetch operation completed');
+
     }
   }
 

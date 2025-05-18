@@ -28,8 +28,6 @@ class StudentsController extends GetxController {
       final uri = Uri.parse(ApiEndpoints.getStudents);
       final token = loginController.token.value;
 
-      print('Fetching students from: $uri');
-      print('Using token: $token');
 
       if (token.isEmpty) {
         errorMessage.value = 'Authentication token is missing';
@@ -42,54 +40,44 @@ class StudentsController extends GetxController {
         'Content-Type': 'application/json',
       };
 
-      print('Request headers: $headers');
-
       final response = await http.get(uri, headers: headers);
-
-      print('Response status code: ${response.statusCode}');
-      print('Response headers: ${response.headers}');
-      print('Raw response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
-        print('Decoded JSON response: $jsonResponse');
 
         // Check if response is a Map and contains 'data' key
         if (jsonResponse is Map<String, dynamic> && jsonResponse.containsKey('data')) {
           final studentsData = jsonResponse['data'];
-          print('Extracted data array: $studentsData');
 
           if (studentsData is List) {
             try {
               students.value = studentsData.map((student) {
-                print('Parsing student: $student');
+
                 return User.fromJson(student as Map<String, dynamic>);
               }).toList();
               successMessage.value = 'Students fetched successfully';
-              print('Successfully parsed ${students.length} students');
             } catch (e) {
               errorMessage.value = 'Error parsing students data: $e';
-              print('Parsing error: $e');
+
             }
           } else {
             errorMessage.value = 'Data field is not a list: ${studentsData.runtimeType}';
-            print('Error: Expected List but got ${studentsData.runtimeType}');
+
           }
         } else {
           errorMessage.value = 'Invalid response format: Expected object with "data" key';
-          print('Error: Unexpected response structure: ${jsonResponse.runtimeType}');
+
         }
       } else {
         errorMessage.value = 'Failed to load students: ${response.statusCode} - ${response.body}';
-        print('Error response: ${response.statusCode} - ${response.body}');
+
       }
     } catch (e) {
       errorMessage.value = 'Error fetching students: $e';
-      print('Exception caught: $e');
-      print('Stack trace: ${StackTrace.current}');
+
     } finally {
       isLoading.value = false;
-      print('Fetch operation completed');
+
     }
   }
 
