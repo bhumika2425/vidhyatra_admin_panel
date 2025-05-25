@@ -242,9 +242,7 @@ class FeedbackPage extends StatelessWidget {
         children: [
           _buildDashboardHeader(),
           const SizedBox(height: 24),
-          _buildFiltersRow(),
-          const SizedBox(height: 20),
-          _buildFeedbackTable(),
+          _buildFeedbackCards(),
         ],
       ),
     );
@@ -275,96 +273,7 @@ class FeedbackPage extends StatelessWidget {
             )),
           ],
         ),
-        Row(
-          children: [
-            _buildExportButton(),
-            const SizedBox(width: 12),
-          ],
-        ),
       ],
-    );
-  }
-
-  Widget _buildExportButton() {
-    return OutlinedButton.icon(
-      onPressed: () {
-        // Export functionality
-        Get.snackbar(
-          'Export',
-          'Exporting feedback data...',
-          backgroundColor: Colors.blue,
-          colorText: Colors.white,
-        );
-      },
-      icon: const Icon(Icons.download),
-      label: const Text('Export'),
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        side: const BorderSide(color: Color(0xFF186CAC)),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
-  }
-
-  Widget _buildFiltersRow() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 2,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search feedback...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 0),
-              ),
-              onChanged: (value) {
-                // Implement search functionality
-              },
-            ),
-          ),
-          const SizedBox(width: 16),
-          _buildDropdownFilter(
-            'Type',
-            ['All Types', 'Bug Report', 'Feature Request', 'General'],
-                (value) {
-              // Filter by type
-            },
-          ),
-          const SizedBox(width: 16),
-          _buildDropdownFilter(
-            'Date',
-            ['All Time', 'Today', 'This Week', 'This Month'],
-                (value) {
-              // Filter by date
-            },
-          ),
-          const SizedBox(width: 16),
-          _buildDropdownFilter(
-            'Status',
-            ['All Status', 'Unread', 'Read', 'Archived'],
-                (value) {
-              // Filter by status
-            },
-          ),
-        ],
-      ),
     );
   }
 
@@ -389,7 +298,7 @@ class FeedbackPage extends StatelessWidget {
     );
   }
 
-  Widget _buildFeedbackTable() {
+  Widget _buildFeedbackCards() {
     return Expanded(
       child: Obx(() {
         if (controller.isLoading.value) {
@@ -437,313 +346,156 @@ class FeedbackPage extends StatelessWidget {
           );
         }
 
-        return Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                spreadRadius: 1,
-                blurRadius: 2,
-                offset: const Offset(0, 1),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: _buildDataTable(),
-          ),
+        return ListView.builder(
+          itemCount: controller.feedbackList.length,
+          itemBuilder: (context, index) {
+            return _buildFeedbackCard(controller.feedbackList[index]);
+          },
         );
       }),
     );
   }
 
-  Widget _buildDataTable() {
-    return SingleChildScrollView(
-      child: DataTable(
-        columnSpacing: 20,
-        headingRowColor: MaterialStateProperty.all(
-          const Color(0xFFF9FAFB),
-        ),
-        dataRowMinHeight: 64,
-        dataRowMaxHeight: 84,
-        columns: const [
-          DataColumn(
-            label: Text(
-              'TYPE',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          DataColumn(
-            label: Text(
-              'FEEDBACK',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          DataColumn(
-            label: Text(
-              'SUBMITTED BY',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          DataColumn(
-            label: Text(
-              'DATE',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          DataColumn(
-            label: Text(
-              'ACTIONS',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+  Widget _buildFeedbackCard(FeedbackModel feedback) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
         ],
-        rows: controller.feedbackList
-            .map((feedback) => _buildDataRow(feedback))
-            .toList(),
+        border: Border.all(color: Colors.grey[200]!),
       ),
-    );
-  }
-
-  DataRow _buildDataRow(FeedbackModel feedback) {
-    return DataRow(
-      cells: [
-        DataCell(_buildFeedbackTypeChip(feedback.feedbackType)),
-        DataCell(
-          Container(
-            constraints: const BoxConstraints(maxWidth: 300),
-            child: Text(
-              feedback.feedbackContent,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 2,
-            ),
-          ),
-          onTap: () => _showFeedbackDetails(feedback),
-        ),
-        DataCell(
-          Text(feedback.isAnonymous ? 'Anonymous User' : 'Sender name: ${feedback.username ?? 'N/A'}'),
-        ),
-        DataCell(
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with type and date
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                DateFormat('MMM dd, yyyy').format(feedback.createdAt),
-                style: const TextStyle(fontWeight: FontWeight.w500),
+              _buildFeedbackTypeChip(feedback.feedbackType),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    DateFormat('MMM dd, yyyy').format(feedback.createdAt),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    DateFormat('hh:mm a').format(feedback.createdAt),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // User info
+          Row(
+            children: [
+              Icon(
+                feedback.isAnonymous ? Icons.person_off : Icons.person,
+                size: 18,
+                color: Colors.grey[600],
+              ),
+              const SizedBox(width: 8),
               Text(
-                DateFormat('hh:mm a').format(feedback.createdAt),
+                feedback.isAnonymous
+                    ? 'Anonymous User'
+                    : 'Sender name: ${feedback.username ?? 'N/A'}',
                 style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
+                  fontSize: 14,
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
           ),
-        ),
-        DataCell(
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.visibility, color: Colors.blue),
-                onPressed: () => _showFeedbackDetails(feedback),
-                tooltip: 'View details',
+          const SizedBox(height: 16),
+
+          // Feedback content
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[200]!),
+            ),
+            child: Text(
+              feedback.feedbackContent,
+              style: const TextStyle(
+                fontSize: 15,
+                height: 1.5,
+                color: Color(0xFF2D3748),
               ),
-              IconButton(
-                icon: const Icon(Icons.copy, color: Colors.green),
-                onPressed: () => _copyFeedback(feedback.feedbackContent),
-                tooltip: 'Copy feedback',
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete, color: Colors.red),
-                onPressed: () => _confirmDelete(feedback.id),
-                tooltip: 'Delete feedback',
-              ),
-            ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _buildFeedbackTypeChip(String type) {
     Color chipColor;
+    Color textColor;
     IconData chipIcon;
 
     switch (type.toLowerCase()) {
       case 'bug report':
         chipColor = Colors.red[100]!;
+        textColor = Colors.red[800]!;
         chipIcon = Icons.bug_report;
         break;
       case 'feature request':
         chipColor = Colors.green[100]!;
+        textColor = Colors.green[800]!;
         chipIcon = Icons.lightbulb;
         break;
       case 'question':
         chipColor = Colors.blue[100]!;
+        textColor = Colors.blue[800]!;
         chipIcon = Icons.help;
         break;
       default:
         chipColor = Colors.grey[100]!;
+        textColor = Colors.grey[800]!;
         chipIcon = Icons.feedback;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: chipColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(chipIcon, size: 16, color: Colors.black87),
-          const SizedBox(width: 4),
+          Icon(chipIcon, size: 16, color: textColor),
+          const SizedBox(width: 6),
           Text(
             type,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showFeedbackDetails(FeedbackModel feedback) {
-    Get.dialog(
-      Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Container(
-          width: 600,
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Feedback Details',
-                    style: Theme.of(Get.context!).textTheme.headlineSmall,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Get.back(),
-                  ),
-                ],
-              ),
-              const Divider(height: 30),
-              _buildDetailRow('Type', _buildFeedbackTypeChip(feedback.feedbackType)),
-              const SizedBox(height: 16),
-              _buildDetailRow(
-                'Submitted',
-                Text(DateFormat('MMMM dd, yyyy - hh:mm a').format(feedback.createdAt)),
-              ),
-              const SizedBox(height: 16),
-              _buildDetailRow(
-                'User',
-                Text(feedback.isAnonymous
-                    ? 'Anonymous User'
-                    : 'Sender name: ${feedback.username ?? 'N/A'}'),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Feedback Content:',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              const SizedBox(height: 12),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey[50],
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey[200]!),
-                ),
-                child: SelectableText(feedback.feedbackContent),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: () => _copyFeedback(feedback.feedbackContent),
-                    icon: const Icon(Icons.copy),
-                    label: const Text('Copy Content'),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Get.back();
-                      _confirmDelete(feedback.id);
-                    },
-                    icon: const Icon(Icons.delete),
-                    label: const Text('Delete'),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(String label, Widget value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 100,
-          child: Text(
-            '$label:',
             style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[700],
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: textColor,
             ),
-          ),
-        ),
-        Expanded(child: value),
-      ],
-    );
-  }
-
-  void _copyFeedback(String content) {
-    Clipboard.setData(ClipboardData(text: content));
-    Get.snackbar(
-      'Copied',
-      'Feedback content copied to clipboard',
-      backgroundColor: Colors.green,
-      colorText: Colors.white,
-      duration: const Duration(seconds: 2),
-      margin: const EdgeInsets.only(top: 12, right: 12),
-    );
-  }
-
-  void _confirmDelete(int id) {
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Delete Feedback'),
-        content: const Text(
-          'Are you sure you want to delete this feedback? This action cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Get.back();
-              controller.deleteFeedback(id);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
           ),
         ],
       ),
